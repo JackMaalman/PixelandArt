@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tekenen</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Basisstijlen en Inter lettertype */
+        :root {
+            --bg-color: #f3f4f6; /* gray-100 */
+            --text-color: #1f2937; /* gray-800 */
+            --toolbar-bg: #ffffff; /* white */
+            --toolbar-text: #4b5563; /* gray-600 */
+            --canvas-bg: #ffffff; /* white - Canvas background always white */
+            --canvas-border: #cccccc; /* light gray */
+            --button-bg: #e5e7eb; /* gray-200 */
+            --button-text: #1f2937; /* gray-800 */
+            --button-hover-bg: #d1d5db; /* gray-300 */
+            --active-tool-bg: #d1d5db; /* gray-300 */
+            --message-bg: rgba(0, 0, 0, 0.7);
+            --message-text: white;
+            --sidemenu-bg: #ffffff; /* white */
+            --sidemenu-border: #cccccc; /* light gray */
+        }
+
+        body.dark-mode {
+            --bg-color: #1f2937; /* gray-800 */
+            --text-color: #f3f4f6; /* gray-100 */
+            --toolbar-bg: #374151; /* gray-700 */
+            --toolbar-text: #d1d5db; /* gray-300 */
+            /* --canvas-bg is intentionally NOT changed here to keep it white */
+            --canvas-border: #6b7280; /* gray-500 - Canvas border changes */
+            --button-bg: #4b5563; /* gray-600 */
+            --button-text: #f3f4f6; /* gray-100 */
+            --button-hover-bg: #6b7280; /* gray-500 */
+            --active-tool-bg: #6b7280; /* gray-500 */
+            --message-bg: rgba(255, 255, 255, 0.7);
+            --message-text: black;
+            --sidemenu-bg: #374151; /* gray-700 */
+            --sidemenu-border: #6b7280; /* gray-500 */
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: background-color 0.3s ease, color 0.3s ease;
+            overflow: hidden; /* Voorkom scrollbars van de body zelf */
+        }
+
+        h1 {
+             color: var(--text-color);
+        }
+
+        .toolbar {
+            background-color: var(--toolbar-bg);
+            transition: background-color 0.3s ease;
+            flex-shrink: 0; /* Voorkom dat toolbar krimpt */
+        }
+
+        .toolbar label, .toolbar span {
+             color: var(--toolbar-text);
+        }
+
+        /* Zorg ervoor dat de canvas een duidelijke rand heeft */
+        canvas {
+            border: 1px solid var(--canvas-border);
+            background-color: var(--canvas-bg); /* Uses the --canvas-bg variable */
+            cursor: crosshair; /* Verander cursor in een kruisje boven het canvas */
+            touch-action: none; /* Voorkom scrollen op touch apparaten tijdens tekenen */
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+            display: block; /* Voorkom extra ruimte onder canvas */
+            max-width: 100%; /* Zorg dat canvas niet breder wordt dan container */
+        }
+
+        /* Stijl voor de actieve tool */
+        .tool-active {
+            background-color: var(--active-tool-bg) !important; /* Override Tailwind */
+            border: 2px solid var(--text-color); /* Extra indicatie */
+        }
+
+        /* Stijl voor knoppen */
+         .toolbar button {
+            background-color: var(--button-bg);
+            color: var(--button-text);
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+            border: 2px solid transparent; /* Ruimte voor actieve border */
+            /* Added styles for smaller buttons */
+            padding: 0.5rem 0.75rem; /* Smaller padding */
+            display: inline-flex; /* Allow flexbox for icon centering */
+            align-items: center;
+            justify-content: center;
+         }
+         .toolbar button:hover {
+             background-color: var(--button-hover-bg);
+         }
+         #clearBtn {
+            background-color: #ef4444; /* red-500 */
+            color: white;
+         }
+         #clearBtn:hover {
+             background-color: #dc2626; /* red-600 */
+         }
+         body.dark-mode #clearBtn {
+             background-color: #ef4444; /* red-500 */
+             color: white;
+         }
+         body.dark-mode #clearBtn:hover {
+             background-color: #dc2626; /* red-600 */
+         }
+
+         /* Stijl voor disabled knoppen */
+         .toolbar button:disabled {
+             opacity: 0.5;
+             cursor: not-allowed;
+         }
+
+         /* Style for SVG icons within buttons */
+         .toolbar button svg {
+             width: 1.25rem; /* Icon size */
+             height: 1.25rem; /* Icon size */
+             fill: currentColor; /* Use button text color for icon */
+         }
+
+         /* Stijl voor het zijmenu */
+         #sideMenu {
+             position: fixed;
+             top: 0;
+             right: -300px; /* Start off-screen */
+             width: 300px;
+             height: 100%;
+             background-color: var(--sidemenu-bg);
+             border-left: 1px solid var(--sidemenu-border);
+             box-shadow: -2px 0 5px rgba(0,0,0,0.5);
+             transition: right 0.3s ease;
+             z-index: 1001; /* Higher than message box */
+             padding: 20px;
+             display: flex;
+             flex-direction: column;
+         }
+
+         #sideMenu.open {
+             right: 0; /* Slide in */
+         }
+
+         #sideMenu .close-btn {
+             align-self: flex-end; /* Align to the right */
+             background: none;
+             border: none;
+             font-size: 1.5rem;
+             cursor: pointer;
+             color: var(--text-color); /* Use main text color */
+             margin-bottom: 20px;
+         }
+
+         #sideMenu button {
+             width: 100%; /* Make buttons fill menu width */
+             justify-content: flex-start; /* Align text/icon to left */
+             margin-bottom: 10px; /* Add some space between menu buttons */
+         }
+
+
+        /* Stijl voor de message box */
+        #messageBox {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: var(--message-bg);
+            color: var(--message-text);
+            padding: 10px 20px;
+            border-radius: 8px;
+            display: none; /* Standaard verborgen */
+            z-index: 1000;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="flex flex-col items-center justify-start min-h-screen p-4">
+
+    <h1 class="text-3xl font-bold mb-4 flex-shrink-0">Tekenbord</h1>
+
+    <div class="toolbar w-full max-w-4xl p-3 rounded-lg shadow-md mb-4 flex flex-wrap items-center justify-center gap-3">
+        <div>
+            <label for="colorPicker" class="mr-1 text-sm font-medium">Kleur:</label>
+            <input type="color" id="colorPicker" value="#000000" class="h-8 w-8 rounded border border-gray-300 cursor-pointer align-middle">
+        </div>
+
+        <div>
+            <label for="brushSize" class="mr-1 text-sm font-medium">Grootte:</label>
+            <input type="range" id="brushSize" min="1" max="50" value="5" class="cursor-pointer align-middle w-24">
+            <span id="brushSizeValue" class="ml-1 text-sm w-6 inline-block text-center">5</span>
+        </div>
+
+        <button id="drawBtn" class="px-3 py-1.5 rounded-md hover:bg-gray-300 transition duration-150 text-sm font-medium tool-active">
+            Tekenen
+        </button>
+
+        <button id="eraserBtn" class="px-3 py-1.5 rounded-md hover:bg-gray-300 transition duration-150 text-sm font-medium">
+            Gum
+        </button>
+
+        <button id="fillBtn" class="px-3 py-1.5 rounded-md hover:bg-gray-300 transition duration-150 text-sm font-medium">
+            Vullen
+        </button>
+
+        <button id="undoBtn" class="rounded-md hover:bg-gray-300 transition duration-150 text-sm font-medium" disabled>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2c5.514 0 10 4.486 10 10s-4.486 10-10 10-10-4.486-10-10 4.486-10 10-10zm0-2c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm4.097 11h-8.391l2.987-2.987c.183-.183.295-.438.295-.713 0-.574-.466-1.04-1.04-1.04-.275 0-.53.112-.713.295l-4.242 4.242c-.196.196-.305.453-.305.728 0 .274.109.531.305.727l4.242 4.242c.183.183.438.295.713.295.574 0 1.04-.466 1.04-1.04 0-.275-.112-.53-.295-.713l-2.986-2.987h8.391c.552 0 1-.448 1-1s-.448-1-1-1z"/></svg>
+        </button>
+
+        <button id="redoBtn" class="rounded-md hover:bg-gray-300 transition duration-150 text-sm font-medium" disabled>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2c5.514 0 10 4.486 10 10s-4.486 10-10 10-10-4.486-10-10 4.486-10 10-10zm0-2c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm-4.097 11h8.391l-2.987 2.987c-.183.183-.295.438-.295.713 0 .574.466 1.04 1.04 1.04.275 0 .53-.112.713-.295l4.242-4.242c.196-.196.305-.453.305-.728 0-.274-.109-.531-.305-.727l-4.242-4.242c-.183-.183-.438-.295-.713-.295-.574 0-1.04.466-1.04 1.04 0 .275.112.53.295.713l2.986 2.987h-8.391c-.552 0-1 .448-1 1s.448 1 1 1z"/></svg>
+        </button>
+
+        <button id="clearBtn" class="px-3 py-1.5 text-white rounded-md transition duration-150 text-sm font-medium">
+            Wissen
+        </button>
+
+        <button id="openMenuBtn" class="px-3 py-1.5 rounded-md hover:bg-gray-300 transition duration-150 text-sm font-medium">
+            Instellingen
+        </button>
+    </div>
+
+    <div class="canvas-container w-full max-w-4xl flex-grow flex justify-center items-center mb-4">
+         <canvas id="drawingCanvas" class="rounded-lg shadow-md"></canvas>
+    </div>
+
+    <div id="sideMenu">
+        <button class="close-btn">&times;</button>
+        <h2 class="text-xl font-bold mb-4">Instellingen</h2>
+        <button id="darkModeToggle" class="px-3 py-1.5 rounded-md hover:bg-gray-300 transition duration-150 text-sm font-medium">
+            ☀️ Licht (Klik 0/10)
+        </button>
+         <button id="exportBtn" class="px-3 py-1.5 rounded-md hover:bg-gray-300 transition duration-150 text-sm font-medium">
+            Exporteer als PNG
+        </button>
+         <button id="pixelBtn" class="px-3 py-1.5 rounded-md hover:bg-gray-300 transition duration-150 text-sm font-medium">
+            Pixel Art
+        </button>
+    </div>
+
+
+    <div id="messageBox"></div>
+
+    <script>
+        const canvas = document.getElementById('drawingCanvas');
+        const ctx = canvas.getContext('2d', { willReadFrequently: true }); // Prestatiehint
+        const colorPicker = document.getElementById('colorPicker');
+        const brushSizeSlider = document.getElementById('brushSize');
+        const brushSizeValue = document.getElementById('brushSizeValue');
+        const clearBtn = document.getElementById('clearBtn');
+        const eraserBtn = document.getElementById('eraserBtn');
+        const drawBtn = document.getElementById('drawBtn'); // New draw button
+        const fillBtn = document.getElementById('fillBtn'); // New fill button
+        const pixelBtn = document.getElementById('pixelBtn'); // Pixel art button (now inside menu)
+        const undoBtn = document.getElementById('undoBtn'); // New undo button
+        const redoBtn = document.getElementById('redoBtn'); // New redo button
+        const openMenuBtn = document.getElementById('openMenuBtn'); // New button to open menu
+        const sideMenu = document.getElementById('sideMenu'); // Side menu element
+        const closeMenuBtn = sideMenu.querySelector('.close-btn'); // Close button inside menu
+        const darkModeToggle = document.getElementById('darkModeToggle'); // Dark mode toggle (now inside menu)
+        const exportBtn = document.getElementById('exportBtn'); // New export button
+        const messageBox = document.getElementById('messageBox');
+        const body = document.body;
+        const canvasContainer = document.querySelector('.canvas-container');
+
+        // Variabelen
+        let isDrawing = false; // Tracks if currently drawing a line or pixels
+        let lastX = 0;
+        let lastY = 0;
+        let lastGridX = -1; // For pixel art: track the last grid cell drawn
+        let lastGridY = -1; // For pixel art: track the last grid cell drawn
+        let brushColor = '#000000';
+        let brushSize = 5;
+        let savedColor = brushColor; // To restore color after using eraser/fill
+        let currentTheme = localStorage.getItem('theme') || 'dark'; // Default to dark mode
+        let currentTool = 'draw'; // 'draw', 'erase', 'fill', 'pixel'
+
+        // Variables for difficult light mode toggle
+        let lightModeClickCount = 0;
+        const clicksToLightMode = 10;
+
+        // History variables
+        const history = [];
+        let historyIndex = -1;
+        const maxHistoryStates = 50; // Limit history size to prevent excessive memory usage
+
+
+        // --- Hulpfuncties ---
+
+        function showMessage(message) {
+            messageBox.textContent = message;
+            messageBox.style.display = 'block';
+            clearTimeout(messageBox.timer); // Reset timer als er al een melding is
+            messageBox.timer = setTimeout(() => {
+                messageBox.style.display = 'none';
+            }, 2000);
+        }
+
+        // Haalt de huidige achtergrondkleur op, rekening houdend met thema
+        function getCurrentBgColor() {
+            // Forceer browser om stijlen te herberekenen voor de zekerheid
+            window.getComputedStyle(canvas).getPropertyValue('background-color');
+            // Now it will always return the color defined by --canvas-bg, which is white
+            return getComputedStyle(canvas).backgroundColor;
+        }
+
+        // Vult het canvas met de huidige achtergrondkleur
+        function setCanvasBackground() {
+            const bgColor = getCurrentBgColor();
+            ctx.fillStyle = bgColor;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+
+        // Converts a hex color string to an RGBA array [R, G, B, A]
+        function hexToRgba(hex) {
+            const bigint = parseInt(hex.replace('#', ''), 16);
+            const r = (bigint >> 16) & 255;
+            const g = (bigint >> 8) & 255;
+            const b = bigint & 255;
+            // Assume full opacity for brush colors
+            return [r, g, b, 255];
+        }
+
+        // Checks if two RGBA colors are the same
+        function colorsMatch(color1, color2) {
+            return color1[0] === color2[0] &&
+                   color1[1] === color2[1] &&
+                   color1[2] === color2[2] &&
+                   color1[3] === color2[3];
+        }
+
+        // Flood fill algorithm
+        function floodFill(startX, startY, targetColor, replacementColor) {
+            // Get image data
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const pixels = imageData.data;
+            const width = canvas.width;
+            const height = canvas.height;
+
+            // Check if target and replacement colors are the same
+            if (colorsMatch(targetColor, replacementColor)) {
+                return; // No need to fill
+            }
+
+            // Queue for pixels to visit
+            const queue = [[startX, startY]];
+
+            // Helper function to get pixel color at (x, y)
+            function getPixelColor(x, y) {
+                const index = (y * width + x) * 4;
+                return [pixels[index], pixels[index + 1], pixels[index + 2], pixels[index + 3]];
+            }
+
+            // Helper function to set pixel color at (x, y)
+            function setPixelColor(x, y, color) {
+                const index = (y * width + x) * 4;
+                pixels[index] = color[0];
+                pixels[index + 1] = color[1];
+                pixels[index + 2] = color[2];
+                pixels[index + 3] = color[3];
+            }
+
+            // Process the queue
+            while (queue.length > 0) {
+                const [x, y] = queue.shift(); // Get the next pixel
+
+                // Check bounds
+                if (x < 0 || x >= width || y < 0 || y >= height) {
+                    continue;
+                }
+
+                // Get current pixel color
+                const currentColor = getPixelColor(x, y);
+
+                // If the current color matches the target color
+                if (colorsMatch(currentColor, targetColor)) {
+                    // Set the pixel to the replacement color
+                    setPixelColor(x, y, replacementColor);
+
+                    // Add neighbors to the queue
+                    queue.push([x + 1, y]);
+                    queue.push([x - 1, y]);
+                    queue.push([x, y + 1]);
+                    queue.push([x, y - 1]);
+                }
+            }
+
+            // Put the modified image data back
+            ctx.putImageData(imageData, 0, 0);
+        }
+
+
+        // Updates the active tool button styles
+        function updateToolButtonStyles() {
+            // Remove active class from all tool buttons
+            drawBtn.classList.remove('tool-active');
+            eraserBtn.classList.remove('tool-active');
+            fillBtn.classList.remove('tool-active');
+            pixelBtn.classList.remove('tool-active'); // Remove active from pixel button
+
+            // Add active class to the current tool button
+            if (currentTool === 'draw') {
+                drawBtn.classList.add('tool-active');
+            } else if (currentTool === 'erase') {
+                eraserBtn.classList.add('tool-active');
+            } else if (currentTool === 'fill') {
+                fillBtn.classList.add('tool-active');
+            } else if (currentTool === 'pixel') { // Add case for pixel button
+                pixelBtn.classList.add('tool-active');
+            }
+        }
+
+        // Saves the current canvas state to the history stack
+        function saveState() {
+            if (canvas.width > 0 && canvas.height > 0) {
+                 // If we are not at the end of the history (meaning we've undone some actions),
+                 // discard the future states before adding a new one.
+                 if (historyIndex < history.length - 1) {
+                     history.splice(historyIndex + 1);
+                 }
+
+                 // Get the current image data
+                 const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+                 // Add the state to the history
+                 history.push(imageData);
+
+                 // Limit history size
+                 if (history.length > maxHistoryStates) {
+                     history.shift(); // Remove the oldest state
+                 }
+
+                 // Update the history index to point to the new last state
+                 historyIndex = history.length - 1;
+
+                 // Update button states
+                 updateHistoryButtons();
+            }
+        }
+
+        // Restores a canvas state from the history stack
+        function restoreState(index) {
+            if (index >= 0 && index < history.length) {
+                ctx.putImageData(history[index], 0, 0);
+                historyIndex = index;
+                updateHistoryButtons();
+            }
+        }
+
+        // Undoes the last action
+        function undo() {
+            if (historyIndex > 0) {
+                restoreState(historyIndex - 1);
+                showMessage('Actie ongedaan gemaakt');
+            }
+        }
+
+        // Redoes the last undone action
+        function redo() {
+            if (historyIndex < history.length - 1) {
+                restoreState(historyIndex + 1);
+                showMessage('Actie opnieuw gedaan');
+            }
+        }
+
+        // Updates the enabled/disabled state of the undo/redo buttons
+        function updateHistoryButtons() {
+            undoBtn.disabled = historyIndex <= 0;
+            redoBtn.disabled = historyIndex >= history.length - 1;
+        }
+
+
+        // Herstelt de tekeninstellingen (kleur, dikte, gum)
+        function restoreDrawingSettings() {
+            const currentBgColor = getCurrentBgColor();
+
+            // Set stroke/fill style based on the current tool
+            if (currentTool === 'erase') {
+                 ctx.strokeStyle = currentBgColor; // Eraser uses canvas background for lines
+                 ctx.fillStyle = currentBgColor; // Eraser uses canvas background for pixels
+            } else { // draw, fill, or pixel
+                 ctx.strokeStyle = brushColor; // Drawing uses selected color for lines
+                 ctx.fillStyle = brushColor; // Pixel art and fill use selected color
+            }
+
+            // Line width is only relevant for 'draw' and 'erase'
+            ctx.lineWidth = brushSize;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+
+            // Update active tool button styles
+            updateToolButtonStyles();
+
+            // Update cursor based on tool
+            if (currentTool === 'fill') {
+                canvas.style.cursor = 'crosshair'; // Or 'pointer', depending on preference
+            } else { // draw, erase, or pixel
+                 canvas.style.cursor = 'crosshair';
+            }
+        }
+
+        // Past het thema aan (light/dark)
+        function applyTheme(theme) {
+            // 1. Bewaar huidige tekening (alleen als canvas dimensies heeft)
+            // Note: getImageData gets pixels ignoring transform, so it's fine here.
+            let imageData = null;
+             if (historyIndex >= 0) {
+                 // Get the current state from history instead of canvas directly
+                 // This ensures we redraw the correct state after theme change
+                 imageData = history[historyIndex];
+             }
+
+
+            // 2. Verander de body class en update button text
+            if (theme === 'dark') {
+                body.classList.add('dark-mode');
+                // Update the text of the button inside the menu
+                darkModeToggle.textContent = `☀️ Licht (Klik 0/${clicksToLightMode})`; // Reset counter display
+                lightModeClickCount = 0; // Reset click counter
+            } else {
+                body.classList.remove('dark-mode');
+                 // Update the text of the button inside the menu
+                darkModeToggle.textContent = '🌙 Donker';
+            }
+            currentTheme = theme;
+            localStorage.setItem('theme', theme);
+
+            // 3. Wacht op volgende frame voor CSS update, dan canvas bijwerken
+            requestAnimationFrame(() => {
+                // 3a. Vul canvas met de *nieuwe* achtergrondkleur (which is always white now)
+                // This fill happens *after* the body class change, so it gets the correct --canvas-bg (white)
+                setCanvasBackground();
+
+                // 3b. Teken de opgeslagen tekening terug (indien aanwezig)
+                // putImageData also ignores transform, so it puts pixels at original positions
+                if (imageData) {
+                    ctx.putImageData(imageData, 0, 0);
+                }
+
+                // 3c. Herstel tekeninstellingen (belangrijk voor gum/kleur)
+                // This will also update the brush size based on the current zoomLevel
+                restoreDrawingSettings();
+
+                 // No need for redrawCanvas here, applyTheme already redraws the state
+            });
+        }
+
+        // Past canvasgrootte aan container aan
+        function resizeCanvas() {
+            // Bewaar tekening (untransformed pixel data) from history
+             let imageData = null;
+             if (historyIndex >= 0) {
+                 imageData = history[historyIndex];
+             }
+
+            // Bereken nieuwe grootte gebaseerd op container
+            const containerWidth = canvasContainer.clientWidth;
+            const containerHeight = canvasContainer.clientHeight; // Gebruik container hoogte
+
+             // Behoud aspect ratio (optioneel, hier vullen we de container)
+             const newWidth = containerWidth - 2; // -2 voor de border
+             const newHeight = containerHeight - 2; // -2 voor de border
+
+
+            // Pas alleen aan als grootte echt verandert
+            if (canvas.width !== newWidth || canvas.height !== newHeight) {
+                canvas.width = newWidth > 0 ? newWidth : 1; // Minimaal 1px
+                canvas.height = newHeight > 0 ? newHeight : 1; // Minimaal 1px
+
+                // After resizing, the context is reset.
+                // The background needs to be filled again.
+                setCanvasBackground();
+
+                // Teken oude data terug (untransformed)
+                if (imageData) {
+                     ctx.putImageData(imageData, 0, 0);
+                     // TODO: Implementeer schaling indien nodig voor betere resize
+                }
+
+                // Save the new state after resize (important for history)
+                saveState(); // Save the state after resizing and redrawing
+            }
+             // Herstel altijd instellingen na resize (also if size doesn't change, for certainty)
+             restoreDrawingSettings(); // This also updates brush size based on zoom
+        }
+
+        // --- Tekenlogica ---
+
+        function draw(e) {
+            if (!isDrawing) return;
+            e.preventDefault(); // Voorkom scrollen etc.
+
+            const rect = canvas.getBoundingClientRect();
+            let currentX, currentY;
+
+            if (e.touches && e.touches.length > 0) {
+                currentX = e.touches[0].clientX - rect.left;
+                currentY = e.touches[0].clientY - rect.top;
+            } else {
+                currentX = e.offsetX;
+                currentY = e.offsetY;
+            }
+
+            if (currentTool === 'draw' || currentTool === 'erase') {
+                // Draw a line segment
+                ctx.beginPath();
+                ctx.moveTo(lastX, lastY);
+                ctx.lineTo(currentX, currentY);
+                ctx.stroke();
+            } else if (currentTool === 'pixel') {
+                // Draw a pixel (filled rectangle)
+                const currentGridX = Math.floor(currentX / brushSize);
+                const currentGridY = Math.floor(currentY / brushSize);
+
+                // Only draw if we moved to a new grid cell
+                if (currentGridX !== lastGridX || currentGridY !== lastGridY) {
+                    ctx.fillRect(currentGridX * brushSize, currentGridY * brushSize, brushSize, brushSize);
+                    lastGridX = currentGridX;
+                    lastGridY = currentGridY;
+                }
+            }
+
+
+            [lastX, lastY] = [currentX, currentY];
+        }
+
+        function startDrawing(e) {
+            // Determine click/touch position relative to canvas
+            const rect = canvas.getBoundingClientRect();
+            let startX, startY;
+             if (e.touches && e.touches.length > 0) {
+                 startX = e.touches[0].clientX - rect.left;
+                 startY = e.touches[0].clientY - rect.top;
+                 e.preventDefault(); // Prevent default touch behavior
+             } else {
+                 startX = e.offsetX;
+                 startY = e.offsetY;
+             }
+
+             // Check if click/touch is within canvas bounds
+             if (startX >= 0 && startX <= canvas.width && startY >= 0 && startY <= canvas.height) {
+
+                 if (currentTool === 'fill') {
+                     // Get the color of the clicked pixel
+                     const targetColor = ctx.getImageData(startX, startY, 1, 1).data;
+                     // Get the replacement color (current brush color)
+                     const replacementColor = hexToRgba(brushColor);
+
+                     // Perform the flood fill
+                     floodFill(startX, startY, targetColor, replacementColor);
+                     showMessage('Canvas gevuld');
+                     saveState(); // Save state after fill
+
+                 } else if (currentTool === 'draw' || currentTool === 'erase') {
+                     // Handle drawing or erasing lines
+                     isDrawing = true;
+                     [lastX, lastY] = [startX, startY];
+
+                     // Zorg dat instellingen correct zijn bij start
+                     restoreDrawingSettings();
+
+                     // Optional: Draw a point at the start for smoother lines
+                     // ctx.beginPath();
+                     // ctx.arc(lastX, lastY, brushSize / 2, 0, Math.PI * 2);
+                     // ctx.fillStyle = ctx.strokeStyle; // Use stroke color for point
+                     // ctx.fill();
+                     // ctx.beginPath(); // Start new path for the line
+                     // ctx.moveTo(lastX, lastY);
+
+                 } else if (currentTool === 'pixel') {
+                     // Handle pixel drawing
+                     isDrawing = true;
+                     const startGridX = Math.floor(startX / brushSize);
+                     const startGridY = Math.floor(startY / brushSize);
+                     [lastGridX, lastGridY] = [startGridX, startGridY];
+
+                     // Draw the first pixel immediately on click
+                     ctx.fillRect(startGridX * brushSize, startGridY * brushSize, brushSize, brushSize);
+
+                     // Zorg dat instellingen correct zijn bij start
+                     restoreDrawingSettings();
+                 }
+             }
+        }
+
+        function stopDrawing() {
+            if (isDrawing) {
+                isDrawing = false;
+                 // Only reset path for line tools
+                if (currentTool === 'draw' || currentTool === 'erase') {
+                    ctx.beginPath(); // Reset path om losse lijnen te voorkomen
+                }
+                saveState(); // Save state after drawing stroke/pixel session is finished
+            }
+        }
+
+        // Function to open the side menu
+        function openMenu() {
+            sideMenu.classList.add('open');
+        }
+
+        // Function to close the side menu
+        function closeMenu() {
+            sideMenu.classList.remove('open');
+        }
+
+        // Function to export the canvas as PNG
+        function exportCanvasAsPNG() {
+            // Create a temporary link element
+            const link = document.createElement('a');
+            // Set the download filename
+            link.download = 'mijn-tekening.png';
+            // Get the canvas content as a data URL (PNG format)
+            link.href = canvas.toDataURL('image/png');
+            // Append the link to the body (necessary for Firefox)
+            document.body.appendChild(link);
+            // Programmatically click the link to trigger the download
+            link.click();
+            // Remove the link element
+            document.body.removeChild(link);
+            showMessage('Tekenbord geëxporteerd als PNG');
+        }
+
+
+        // --- Event Listeners ---
+
+        // Muis
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mouseleave', stopDrawing); // Stop als muis canvas verlaat
+
+        // Touch
+        canvas.addEventListener('touchstart', startDrawing);
+        canvas.addEventListener('touchmove', draw);
+        canvas.addEventListener('touchend', stopDrawing);
+        canvas.addEventListener('touchcancel', stopDrawing); // Stop bij annuleren
+
+        // Toolbar Knoppen
+        colorPicker.addEventListener('input', (e) => {
+            brushColor = e.target.value;
+            savedColor = brushColor; // Save selected color
+            // If currently erasing, switch back to drawing with the new color
+            if (currentTool === 'erase') {
+                 currentTool = 'draw';
+                 showMessage('Gum gedeactiveerd, tekenen geactiveerd');
+            } else if (currentTool === 'fill') {
+                 // If fill is active, just update the color, stay in fill mode
+                 showMessage('Kleur gewijzigd voor vullen');
+            } else if (currentTool === 'pixel') {
+                 // If pixel is active, just update the color, stay in pixel mode
+                 showMessage('Pixelkleur gewijzigd');
+            }
+            restoreDrawingSettings(); // Update settings and button styles
+        });
+
+        brushSizeSlider.addEventListener('input', (e) => {
+            brushSize = e.target.value;
+            brushSizeValue.textContent = brushSize;
+            restoreDrawingSettings(); // Update lijn dikte/pixel grootte direct
+        });
+
+        clearBtn.addEventListener('click', () => {
+            setCanvasBackground(); // Vul met juiste achtergrond (always white)
+            showMessage('Canvas gewist');
+            saveState(); // Save state after clearing
+            restoreDrawingSettings(); // Zorg dat instellingen kloppen voor verder tekenen
+        });
+
+        drawBtn.addEventListener('click', () => {
+            currentTool = 'draw';
+            brushColor = savedColor; // Restore saved color when switching back to draw
+            showMessage('Tekenen geactiveerd');
+            restoreDrawingSettings();
+        });
+
+        eraserBtn.addEventListener('click', () => {
+            currentTool = 'erase';
+            // No need to save color here, it's saved when colorPicker changes
+            showMessage('Gum geactiveerd');
+            restoreDrawingSettings(); // Update style and active button
+        });
+
+        fillBtn.addEventListener('click', () => {
+            currentTool = 'fill';
+             // No need to save color here, it's saved when colorPicker changes
+            showMessage('Vullen geactiveerd');
+            restoreDrawingSettings(); // Update style and active button
+        });
+
+        pixelBtn.addEventListener('click', () => { // Add event listener for pixel button
+            currentTool = 'pixel';
+            brushColor = savedColor; // Use saved color for pixel art
+            showMessage('Pixel Art geactiveerd');
+            restoreDrawingSettings(); // Update style and active button
+        });
+
+
+        undoBtn.addEventListener('click', undo);
+        redoBtn.addEventListener('click', redo);
+
+        // Event listeners for the side menu
+        openMenuBtn.addEventListener('click', openMenu);
+        closeMenuBtn.addEventListener('click', closeMenu);
+        exportBtn.addEventListener('click', exportCanvasAsPNG); // Add event listener for export button
+
+
+        darkModeToggle.addEventListener('click', () => {
+            if (body.classList.contains('dark-mode')) {
+                // Currently in dark mode, trying to switch to light mode
+                lightModeClickCount++;
+                if (lightModeClickCount >= clicksToLightMode) {
+                    // Switch to light mode after enough clicks
+                    applyTheme('light');
+                    showMessage('Modus gewijzigd naar licht');
+                    lightModeClickCount = 0; // Reset counter
+                } else {
+                    // Update button text to show progress
+                    darkModeToggle.textContent = `☀️ Licht (Klik ${lightModeClickCount}/${clicksToLightMode})`;
+                    showMessage(`Nog ${clicksToLightMode - lightModeClickCount} keer klikken voor lichte modus`);
+                }
+            } else {
+                // Currently in light mode, switch to dark mode immediately
+                applyTheme('dark');
+                showMessage('Modus gewijzigd naar donker');
+            }
+        });
+
+        // Laden en Resize
+        window.addEventListener('load', () => {
+            // 1. Pas initieel thema toe (standaard is nu 'dark')
+            applyTheme(currentTheme); // Dit triggert rAF voor achtergrond etc.
+
+            // 2. Wacht tot eerste frame na thema is toegepast, dan resize
+            requestAnimationFrame(() => {
+                resizeCanvas(); // Stelt grootte in, vult bg (white), herstelt evt. tekening/instellingen
+
+                 // 3. Zet initiele kleur/grootte correct na laden en eerste resize
+                brushColor = colorPicker.value;
+                savedColor = brushColor; // Save initial color
+                brushSize = brushSizeSlider.value;
+                brushSizeValue.textContent = brushSize; // Update label
+                restoreDrawingSettings(); // Pas de initiële instellingen toe
+
+                // Save the initial state after everything is set up
+                saveState();
+            });
+        });
+
+        // Gebruik ResizeObserver voor betere performance dan 'resize' event
+        const resizeObserver = new ResizeObserver(entries => {
+             // Wacht een fractie om te voorkomen dat resize te vaak triggert
+             requestAnimationFrame(() => {
+                 resizeCanvas(); // resizeCanvas now handles saving state after resize
+             });
+        });
+        // Observeer de container van het canvas
+        resizeObserver.observe(canvasContainer);
+
+    </script>
+
+</body>
+</html>
