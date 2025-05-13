@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tekenprograma</title>
+    <title>Tekenbord</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         /* Basisstijlen en Inter lettertype */
@@ -102,8 +102,8 @@
              background-color: var(--button-hover-bg);
          }
          #clearBtn {
-            background-color: #ef4444; /* red-500 */
-            color: white;
+             background-color: #ef4444; /* red-500 */
+             color: white;
          }
          #clearBtn:hover {
              background-color: #dc2626; /* red-600 */
@@ -238,39 +238,40 @@
          }
 
 
-        /* Stijl voor de message box */
-        #messageBox {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: var(--message-bg);
-            color: var(--message-text);
-            padding: 10px 20px;
-            border-radius: 8px;
-            display: none; /* Standaard verborgen */
-            z-index: 1000;
-            transition: background-color 0.3s ease, color 0.3s ease;
-        }
+         /* Stijl voor de message box */
+         #messageBox {
+             position: fixed;
+             top: 20px;
+             left: 50%;
+             transform: translateX(-50%);
+             background-color: var(--message-bg);
+             color: var(--message-text);
+             padding: 10px 20px;
+             border-radius: 8px;
+             display: none; /* Standaard verborgen */
+             z-index: 1000;
+             transition: background-color 0.3s ease, color 0.3s ease;
+         }
 
-        /* Stijl voor de versieaanduiding */
-        #versionInfo {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            font-size: 0.8rem;
-            color: var(--text-color);
-            opacity: 0.7; /* Maak het iets minder opvallend */
-        }
+         /* Stijl voor de versieaanduiding */
+         #versionInfo {
+             position: absolute;
+             top: 10px;
+             right: 10px;
+             font-size: 0.8rem;
+             color: var(--text-color);
+             opacity: 0.7; /* Maak het iets minder opvallend */
+         }
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    </head>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+</head>
 <body class="flex flex-col items-center justify-start min-h-screen p-4 relative">
-    <div id="versionInfo">v0.7.0 beta</div>
+    <div id="versionInfo">v0.8.0 beta</div>
 
-    <h1 class="text-3xl font-bold mb-4 flex-shrink-0">Tekenbord</h1>
+    <h1 class="text-3xl font-bold mb-4 flex-shrink-0">Pixel & Art</h1>
 
     <div class="toolbar w-full max-w-4xl p-3 rounded-lg shadow-md mb-4 flex flex-wrap items-center justify-center gap-3">
         <div>
@@ -298,14 +299,6 @@
 
          <button id="textBtn" class="px-3 py-1.5 rounded-md hover:bg-gray-300 transition duration-150 text-sm font-medium">
              Tekst
-         </button>
-
-         <button id="pixelPenBtn" class="px-3 py-1.5 rounded-md hover:bg-gray-300 transition duration-150 text-sm font-medium">
-             Pixel Pen
-         </button>
-
-         <button id="pixelEraserBtn" class="px-3 py-1.5 rounded-md hover:bg-gray-300 transition duration-150 text-sm font-medium">
-             Pixel Gum
          </button>
 
          <button id="lineBtn" class="px-3 py-1.5 rounded-md hover:bg-gray-300 transition duration-150 text-sm font-medium">
@@ -345,6 +338,9 @@
         <button id="darkModeToggle" class="px-3 py-1.5 rounded-md hover:bg-gray-300 transition duration-150 text-sm font-medium">
             ☀️ Licht (Klik 0/10)
         </button>
+         <button id="pixelModeToggle" class="px-3 py-1.5 rounded-md hover:bg-gray-300 transition duration-150 text-sm font-medium">
+             Pixel Art Mode: Uit
+         </button>
          <button id="exportBtn" class="px-3 py-1.5 rounded-md hover:bg-gray-300 transition duration-150 text-sm font-medium">
             Exporteer als PNG
         </button>
@@ -361,6 +357,7 @@
                 <option value="Times New Roman">Times New Roman</option>
                 <option value="Courier New">Courier New</option>
                 <option value="Georgia">Georgia</option>
+                <option value="Press Start 2P">Press Start 2P</option>
             </select>
         </div>
          <div class="modal-setting">
@@ -387,7 +384,6 @@
         const eraserBtn = document.getElementById('eraserBtn');
         const drawBtn = document.getElementById('drawBtn'); // New draw button
         const fillBtn = document.getElementById('fillBtn'); // New fill button
-        const pixelPenBtn = document.getElementById('pixelPenBtn'); // Pixel pen button
         const textBtn = document.getElementById('textBtn'); // New text button
         const lineBtn = document.getElementById('lineBtn'); // New line button
         const undoBtn = document.getElementById('undoBtn'); // New undo button
@@ -410,8 +406,9 @@
         const addTextBtn = document.getElementById('addTextBtn');
         const cancelTextBtn = document.getElementById('cancelTextBtn');
 
-        // Pixel Eraser Button Element
-        const pixelEraserBtn = document.getElementById('pixelEraserBtn');
+        // New Pixel Mode Toggle Button
+        const pixelModeToggle = document.getElementById('pixelModeToggle');
+
 
         // Image Upload Elements
         const imageUploadInput = document.getElementById('imageUpload');
@@ -431,6 +428,9 @@
         let currentTool = 'draw'; // 'draw', 'erase', 'fill', 'pixel', 'text', 'line', 'pixelErase', 'image'
         let activeTool = currentTool; // The tool currently active for drawing (can be 'line' temporarily)
         let toolBeforeShift = 'draw'; // Stores the tool before Shift was pressed
+        let isPixelMode = false; // New variable to track pixel art mode
+        let savedFont = fontSelect.value; // Save the currently selected font
+
 
         // Variables for difficult light mode toggle
         let lightModeClickCount = 0;
@@ -502,15 +502,25 @@
             return [r, g, b, 255];
         }
 
-        // Checks if two RGBA colors are the same
+        // Checks if two RGBA colors are the same, considering transparency for the target color
         function colorsMatch(color1, color2) {
-            return color1[0] === color1[0] && // Check if color1 is valid
-                   color2[0] === color2[0] && // Check if color2 is valid
-                   color1[0] === color2[0] &&
-                   color1[1] === color2[1] &&
-                   color1[2] === color2[2] &&
-                   color1[3] === color2[3];
+             // Check if color1 is valid (prevent errors with [-1, -1, -1, -1])
+             if (color1[0] === -1) return false;
+             // Check if color2 is valid
+             if (color2[0] === -1) return false;
+
+             // If the target color is fully transparent, match any fully transparent pixel
+             if (color1[3] === 0) {
+                 return color2[3] === 0;
+             }
+
+             // Otherwise, perform a full RGBA match
+             return color1[0] === color2[0] &&
+                    color1[1] === color2[1] &&
+                    color1[2] === color2[2] &&
+                    color1[3] === color2[3];
         }
+
 
         // Flood fill algorithm
         function floodFill(startX, startY, targetColor, replacementColor) {
@@ -581,17 +591,28 @@
         }
 
 
-        // Updates the active tool button styles based on currentTool
+        // Updates the active tool button styles and text based on currentTool and isPixelMode
         function updateToolButtonStyles() {
             // Remove active class from all tool buttons
             drawBtn.classList.remove('tool-active');
             eraserBtn.classList.remove('tool-active');
             fillBtn.classList.remove('tool-active');
-            pixelPenBtn.classList.remove('tool-active');
             textBtn.classList.remove('tool-active');
             lineBtn.classList.remove('tool-active');
-            pixelEraserBtn.classList.remove('tool-active');
             uploadImageBtn.classList.remove('tool-active'); // Remove active from upload image button
+
+            // Update button text based on pixel mode
+            if (isPixelMode) {
+                drawBtn.textContent = 'Pixel Pen';
+                eraserBtn.textContent = 'Pixel Gum';
+                lineBtn.textContent = 'Pixel Lijn';
+            } else {
+                drawBtn.textContent = 'Tekenen';
+                eraserBtn.textContent = 'Gum';
+                lineBtn.textContent = 'Lijn';
+            }
+             // Update pixel mode toggle button text
+             pixelModeToggle.textContent = `Pixel Art Mode: ${isPixelMode ? 'Aan' : 'Uit'}`;
 
 
             // Add active class to the current tool button
@@ -601,16 +622,22 @@
                 eraserBtn.classList.add('tool-active');
             } else if (currentTool === 'fill') {
                 fillBtn.classList.add('tool-active');
-            } else if (currentTool === 'pixel') {
-                pixelPenBtn.classList.add('tool-active');
             } else if (currentTool === 'text') {
                 textBtn.classList.add('tool-active');
             } else if (currentTool === 'line') {
                 lineBtn.classList.add('tool-active');
-            } else if (currentTool === 'pixelErase') {
-                pixelEraserBtn.classList.add('tool-active');
             } else if (currentTool === 'image') { // Add case for image tool
                  uploadImageBtn.classList.add('tool-active'); // Highlight upload button when image tool is active
+            }
+
+            // Update cursor based on activeTool and isPixelMode
+            if (activeTool === 'fill') {
+                canvas.style.cursor = 'crosshair'; // Or 'pointer', depending on preference
+            } else if (activeTool === 'image' && uploadedImage) {
+                 canvas.style.cursor = 'move'; // Indicate image is movable
+            }
+            else { // draw, erase, pixel, text, line, pixelErase
+                 canvas.style.cursor = 'crosshair';
             }
         }
 
@@ -651,21 +678,21 @@
 
 
                      history.push({
-                         type: 'image',
-                         // Save the base drawing data *before* drawing the image on top
-                         imageData: tempCtx.getImageData(0, 0, canvas.width, canvas.height),
-                         image: uploadedImage,
-                         x: imageX,
-                         y: imageY,
-                         width: imageWidth,
-                         height: imageHeight,
-                         rotation: imageRotation
+                          type: 'image',
+                          // Save the base drawing data *before* drawing the image on top
+                          imageData: tempCtx.getImageData(0, 0, canvas.width, canvas.height),
+                          image: uploadedImage,
+                          x: imageX,
+                          y: imageY,
+                          width: imageWidth,
+                          height: imageHeight,
+                          rotation: imageRotation
                      });
                      console.log("State saved: Image state");
                  } else {
                      history.push({
-                         type: 'drawing', // Indicate this is a regular drawing state
-                         imageData: imageData
+                          type: 'drawing', // Indicate this is a regular drawing state
+                          imageData: imageData
                      });
                      console.log("State saved: Drawing state");
                  }
@@ -715,775 +742,379 @@
                     imageHeight = state.height;
                     imageRotation = state.rotation;
                     console.log("Restored image state:", {x: imageX, y: imageY, width: imageWidth, height: imageHeight, rotation: imageRotation});
-                     // Redraw the image on top of the restored drawing
+                    // Redraw the image on top of the restored base drawing
                     drawImageOnCanvas();
                 } else {
-                    // If restoring a non-image state, ensure uploadedImage is null
+                    // If the state is not an image state, ensure uploadedImage is null
                     uploadedImage = null;
-                    console.log("Restored non-image state, cleared uploaded image.");
+                    console.log("Restored non-image state. uploadedImage set to null.");
                 }
 
-                historyIndex = index;
-                updateHistoryButtons();
+
+                historyIndex = index; // Update the history index
+                updateHistoryButtons(); // Update button states
                 console.log("History index after restore:", historyIndex);
             } else {
                 console.log("Invalid history index for restore:", index);
             }
         }
 
-        // Undoes the last action
-        function undo() {
-            if (historyIndex > 0) {
-                restoreState(historyIndex - 1);
-                showMessage('Actie ongedaan gemaakt');
-            } else {
-                showMessage('Niets om ongedaan te maken');
-            }
-        }
-
-        // Redoes the last undone action
-        function redo() {
-            if (historyIndex < history.length - 1) {
-                restoreState(historyIndex + 1);
-                showMessage('Actie opnieuw gedaan');
-            } else {
-                showMessage('Niets om opnieuw te doen');
-            }
-        }
-
-        // Updates the enabled/disabled state of the undo/redo buttons
+        // Updates the disabled state of the undo and redo buttons
         function updateHistoryButtons() {
-            undoBtn.disabled = historyIndex <= 0;
-            redoBtn.disabled = historyIndex >= history.length - 1;
+            undoBtn.disabled = historyIndex <= 0; // Disable undo if at the first state or no states
+            redoBtn.disabled = historyIndex >= history.length - 1; // Disable redo if at the last state
+            console.log(`History buttons updated: Undo disabled=${undoBtn.disabled}, Redo disabled=${redoBtn.disabled}`);
         }
 
-
-        // Herstelt de tekeninstellingen (kleur, dikte, gum)
-        function restoreDrawingSettings() {
-            const currentBgColor = getCurrentBgColor();
-
-            // Set stroke/fill style based on the current tool
-            if (activeTool === 'erase' || activeTool === 'pixelErase') { // Use activeTool here and add pixelErase
-                 ctx.strokeStyle = currentBgColor; // Eraser uses canvas background for lines
-                 ctx.fillStyle = currentBgColor; // Eraser uses canvas background for pixels/text
-            } else { // draw, fill, pixel, text, or line, image
-                 ctx.strokeStyle = brushColor; // Drawing uses selected color for lines/lines
-                 ctx.fillStyle = brushColor; // Pixel art, fill, and text use selected color
-            }
-
-            // Line width is only relevant for 'draw', 'erase', and 'line' (when not pixel)
-            ctx.lineWidth = brushSize;
-            ctx.lineCap = 'round';
-            ctx.lineJoin = 'round';
-
-            // Update active tool button styles based on currentTool (not activeTool)
-            updateToolButtonStyles();
-
-            // Update cursor based on activeTool
-            if (activeTool === 'fill') {
-                canvas.style.cursor = 'crosshair'; // Or 'pointer', depending on preference
-            } else if (activeTool === 'image' && uploadedImage) {
-                 canvas.style.cursor = 'move'; // Indicate image is movable
-            }
-            else { // draw, erase, pixel, text, line, pixelErase
-                 canvas.style.cursor = 'crosshair';
-            }
-        }
-
-        // Past het thema aan (light/dark)
-        function applyTheme(theme) {
-            console.log("Applying theme:", theme);
-            // 1. Bewaar huidige tekening (alleen als canvas dimensies heeft)
-            // Note: getImageData gets pixels ignoring transform, so it's fine here.
-            let imageData = null;
-             let currentImageState = null; // Store image state separately
-             if (historyIndex >= 0) {
-                 const currentState = history[historyIndex];
-                 imageData = currentState.imageData;
-                 if (currentState.type === 'image') {
-                     currentImageState = currentState;
-                 }
-             }
-
-
-            // 2. Verander de body class en update button text
-            if (theme === 'dark') {
-                body.classList.add('dark-mode');
-                // Update the text of the button inside the menu
-                darkModeToggle.textContent = `☀️ Licht (Klik 0/${clicksToLightMode})`; // Reset counter display
-                lightModeClickCount = 0; // Reset click counter
-            } else {
-                body.classList.remove('dark-mode');
-                 // Update the text of the button inside the menu
-                darkModeToggle.textContent = '🌙 Donker';
-            }
-            currentTheme = theme;
-            localStorage.setItem('theme', theme);
-
-            // 3. Wacht op volgende frame voor CSS update, dan canvas bijwerken
-            requestAnimationFrame(() => {
-                console.log("Applying theme - redrawing canvas");
-                // 3a. Vul canvas met de *nieuwe* achtergrondkleur (which is always white now)
-                // This fill happens *after* the body class change, so it gets the correct --canvas-bg (white)
-                setCanvasBackground();
-
-                // 3b. Teken de opgeslagen tekening terug (indien aanwezig)
-                // putImageData also ignores transform, so it puts pixels at original positions
-                if (imageData) {
-                     ctx.putImageData(imageData, 0, 0);
-                     console.log("Redrew base drawing after theme change.");
-                }
-
-                 // 3c. Teken de afbeelding opnieuw als die er was
-                 if (currentImageState) {
-                     uploadedImage = currentImageState.image;
-                     imageX = currentImageState.x;
-                     imageY = currentImageState.y;
-                     imageWidth = currentImageState.width;
-                     imageHeight = currentImageState.height;
-                     imageRotation = currentImageState.rotation;
-                     drawImageOnCanvas();
-                     console.log("Redrew image after theme change.");
-                 } else {
-                     uploadedImage = null; // Clear image if the state didn't have one
-                     console.log("No image to redraw after theme change.");
-                 }
-
-
-                // 3d. Herstel tekeninstellingen (belangrijk voor gum/kleur)
-                // This will also update the brush size based on the current zoomLevel
-                restoreDrawingSettings();
-
-                 // No need for redrawCanvas here, applyTheme already redraws the state
-            });
-        }
-
-        // Past canvasgrootte aan container aan
-        function resizeCanvas() {
-            console.log("Resizing canvas...");
-            // Bewaar tekening (untransformed pixel data) from history
-             let imageData = null;
-             let currentImageState = null; // Store image state separately
-             if (historyIndex >= 0) {
-                 const currentState = history[historyIndex];
-                 imageData = currentState.imageData;
-                  if (currentState.type === 'image') {
-                     currentImageState = currentState;
-                 }
-             }
-
-            // Bereken nieuwe grootte gebaseerd op container
-            const containerWidth = canvasContainer.clientWidth;
-            const containerHeight = canvasContainer.clientHeight; // Gebruik container hoogte
-
-             // Behoud aspect ratio (optioneel, hier vullen we de container)
-             const newWidth = containerWidth - 2; // -2 voor de border
-             const newHeight = containerHeight - 2; // -2 voor de border
-
-
-            // Pas alleen aan als grootte echt verandert
-            if (canvas.width !== newWidth || canvas.height !== newHeight) {
-                canvas.width = newWidth > 0 ? newWidth : 1; // Minimaal 1px
-                canvas.height = newHeight > 0 ? newHeight : 1; // Minimaal 1px
-                console.log("Canvas resized to:", canvas.width, canvas.height);
-
-                // After resizing, the context is reset.
-                // The background needs to be filled again.
-                setCanvasBackground();
-                console.log("Canvas background set after resize.");
-
-                // Teken oude data terug (untransformed)
-                if (imageData) {
-                     ctx.putImageData(imageData, 0, 0);
-                     console.log("Redrew base drawing after resize.");
-                     // TODO: Implementeer schaling indien nodig voor betere resize
-                }
-
-                 // Teken de afbeelding opnieuw als die er was
-                 if (currentImageState) {
-                     uploadedImage = currentImageState.image;
-                     // Adjust image position if necessary after resize (simple centering for now)
-                     imageX = (canvas.width - currentImageState.width) / 2;
-                     imageY = (canvas.height - currentImageState.height) / 2;
-                     imageWidth = currentImageState.width;
-                     imageHeight = currentImageState.height;
-                     imageRotation = currentImageState.rotation;
-                     drawImageOnCanvas();
-                     console.log("Redrew image after resize.");
-                 } else {
-                     uploadedImage = null; // Clear image if the state didn't have one
-                     console.log("No image to redraw after resize.");
-                 }
-
-
-                // Save the new state after resize (important for history)
-                saveState(); // Save the state after resizing and redrawing
-            } else {
-                console.log("Canvas size did not change.");
-            }
-             // Herstel altijd instellingen na resize (also if size doesn't change, for certainty)
-             restoreDrawingSettings(); // This also updates brush size based on zoom
-        }
-
-        // Function to draw a pixelated line using Bresenham's line algorithm
-        function drawPixelLine(x0, y0, x1, y1, color, size, isErasing = false) { // Added isErasing parameter
-            // Get image data to draw directly on pixels
-            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            const pixels = imageData.data;
-            const width = canvas.width;
-            const height = canvas.height;
-            const rgbaColor = isErasing ? hexToRgba(getCurrentBgColor()) : hexToRgba(color); // Use background color if erasing
-
-            // Helper function to set pixel color at (x, y)
-            function setPixel(x, y, color) {
-                // Scale coordinates to match pixel grid based on brush size
-                const gridX = Math.floor(x / size) * size;
-                const gridY = Math.floor(y / size) * size;
-
-                // Draw a square of size x size
-                for (let i = 0; i < size; i++) {
-                    for (let j = 0; j < size; j++) {
-                         const pixelX = gridX + i;
-                         const pixelY = gridY + j;
-
-                         // Check bounds
-                         if (pixelX >= 0 && pixelX < width && pixelY >= 0 && pixelY < height) {
-                            const index = (pixelY * width + pixelX) * 4;
-                            pixels[index] = color[0];
-                            pixels[index + 1] = color[1];
-                            pixels[index + 2] = color[2];
-                            pixels[index + 3] = color[3]; // Alpha
-                         }
-                    }
-                }
-            }
-
-
-            const dx = Math.abs(x1 - x0);
-            const dy = Math.abs(y1 - y0);
-            const sx = (x0 < x1) ? 1 : -1;
-            const sy = (y0 < y1) ? 1 : -1;
-            let err = dx - dy;
-
-            while (true) {
-                setPixel(x0, y0, rgbaColor);
-
-                if (x0 === x1 && y0 === y1) break;
-                const e2 = 2 * err;
-                if (e2 > -dy) {
-                    err -= dy;
-                    x0 += sx;
-                }
-                if (e2 < dx) {
-                    err += dx;
-                    y0 += sy;
-                }
-            }
-
-            // Put the modified image data back
-            ctx.putImageData(imageData, 0, 0);
-        }
-
-
-        // Function to open the side menu
-        function openMenu() {
-            sideMenu.classList.add('open');
-        }
-
-        // Function to close the side menu
-        function closeMenu() {
-            sideMenu.classList.remove('open');
-        }
-
-        // Function to export the canvas as PNG
-        function exportCanvasAsPNG() {
-            // Create a temporary link element
-            const link = document.createElement('a');
-            // Set the download filename
-            link.download = 'mijn-tekening.png';
-            // Get the canvas content as a data URL (PNG format)
-            link.href = canvas.toDataURL('image/png');
-            // Append the link to the body (necessary for Firefox)
-            document.body.appendChild(link);
-            // Programmatically click the link to trigger the download
-            link.click();
-            // Remove the link element
-            document.body.removeChild(link);
-            showMessage('Tekenbord geëxporteerd als PNG');
-        }
-
-        // Function to add text to the canvas
-        function addTextToCanvas() {
-            const text = textInput.value;
-            const font = fontSelect.value;
-            // Use the value from the new text size slider
-            const size = parseInt(textSizeSlider.value);
-            const color = brushColor; // Use current brush color
-
-            if (text.trim() !== '') {
-                ctx.fillStyle = color;
-                ctx.font = `${size}px "${font}"`; // Set font size and family
-                ctx.fillText(text, textPlacementX, textPlacementY); // Draw text at saved position
-
-                saveState(); // Save state after adding text
-                showMessage('Tekst toegevoegd');
-            }
-
-            // Reset and hide modal
-            textInput.value = '';
-            textInputModal.classList.remove('visible');
-             // Switch back to draw tool after adding or cancelling text
-            currentTool = 'draw';
-            activeTool = 'draw'; // Also reset active tool
-            restoreDrawingSettings(); // Update button styles
-        }
-
-        // Function to cancel text input
-        function cancelTextInput() {
-            textInput.value = '';
-            textInputModal.classList.remove('visible');
-             // Switch back to draw tool after adding or cancelling text
-            currentTool = 'draw';
-            activeTool = 'draw'; // Also reset active tool
-            restoreDrawingSettings(); // Update button styles
-            showMessage('Tekst annuleren');
-        }
-
-        // Function to draw the uploaded image on the canvas
-        function drawImageOnCanvas() {
-            console.log("Attempting to draw image.");
-            if (uploadedImage) {
-                console.log("Drawing image:", uploadedImage, "at", imageX, imageY, "size", imageWidth, imageHeight, "rotation", imageRotation);
-                // Save the current canvas state (transformations)
-                ctx.save();
-
-                // Translate to the image center for rotation
-                ctx.translate(imageX + imageWidth / 2, imageY + imageHeight / 2);
-
-                // Rotate
-                ctx.rotate(imageRotation);
-
-                // Draw the image, adjusted for the translation
-                ctx.drawImage(uploadedImage, -imageWidth / 2, -imageHeight / 2, imageWidth, imageHeight);
-
-                // Restore the canvas state
-                ctx.restore();
-                 console.log("Image drawn.");
-            } else {
-                console.log("No uploaded image to draw.");
-            }
-        }
-
-
-        // --- Tekenlogica ---
-
-        function draw(e) {
-            if (!isDrawing) return;
-            e.preventDefault(); // Voorkom scrollen etc.
-
+        // Gets the mouse position relative to the canvas
+        function getMousePos(event) {
             const rect = canvas.getBoundingClientRect();
-            let currentX, currentY;
+            // Handle both mouse and touch events
+            const clientX = event.clientX || event.touches[0].clientX;
+            const clientY = event.clientY || event.touches[0].clientY;
+            return {
+                x: clientX - rect.left,
+                y: clientY - rect.top
+            };
+        }
 
-            if (e.touches && e.touches.length > 0) {
-                currentX = e.touches[0].clientX - rect.left;
-                currentY = e.touches[0].clientY - rect.top;
-            } else {
-                currentX = e.offsetX;
-                currentY = e.offsetY;
+        // Draws a single pixel in pixel art mode
+        function drawPixel(x, y, color, size) {
+            const pixelSize = size; // In pixel mode, brushSize determines pixel size
+            const gridX = Math.floor(x / pixelSize) * pixelSize;
+            const gridY = Math.floor(y / pixelSize) * pixelSize;
+
+            // Only draw if the grid cell is different from the last one drawn
+            if (gridX !== lastGridX || gridY !== lastGridY) {
+                ctx.fillStyle = color;
+                ctx.fillRect(gridX, gridY, pixelSize, pixelSize);
+                lastGridX = gridX;
+                lastGridY = gridY;
+            }
+        }
+
+         // Erases a single pixel in pixel art mode
+         function erasePixel(x, y, size) {
+             const pixelSize = size; // In pixel mode, brushSize determines pixel size
+             const gridX = Math.floor(x / pixelSize) * pixelSize;
+             const gridY = Math.floor(y / pixelSize) * pixelSize;
+
+             // Only erase if the grid cell is different from the last one erased
+             if (gridX !== lastGridX || gridY !== lastGridY) {
+                 ctx.clearRect(gridX, gridY, pixelSize, pixelSize);
+                 lastGridX = gridX;
+                 lastGridY = gridY;
+             }
+         }
+
+
+        // Starts the drawing process
+        function startDrawing(event) {
+            if (activeTool === 'image') {
+                // Handle image dragging if the click is on the image
+                const pos = getMousePos(event);
+                 if (uploadedImage && pos.x >= imageX && pos.x <= imageX + imageWidth && pos.y >= imageY && pos.y <= imageY + imageHeight) {
+                     isDraggingImage = true;
+                     dragOffsetX = pos.x - imageX;
+                     dragOffsetY = pos.y - imageY;
+                     canvas.style.cursor = 'grabbing'; // Indicate dragging
+                 }
+                return; // Don't start drawing lines/pixels if in image tool
             }
 
-            if (activeTool === 'draw' || activeTool === 'erase') { // Use activeTool
-                // Draw a line segment
-                ctx.beginPath();
-                ctx.moveTo(lastX, lastY);
-                ctx.lineTo(currentX, currentY);
-                ctx.stroke();
-            } else if (activeTool === 'pixel' || activeTool === 'pixelErase') { // Use activeTool and add pixelErase
-                // Draw a pixel (filled rectangle)
-                const currentGridX = Math.floor(currentX / brushSize);
-                const currentGridY = Math.floor(currentY / brushSize);
+            if (activeTool === 'line') {
+                // For line tool, just record the start point on mousedown
+                const pos = getMousePos(event);
+                startLineX = pos.x;
+                startLineY = pos.y;
+                isDrawing = true; // Indicate that a line is being started
+                saveState(); // Save state before starting the line draw
+                return; // Don't proceed with regular drawing logic
+            }
 
-                // Only draw if we moved to a new grid cell
-                if (currentGridX !== lastGridX || currentGridY !== lastGridY) {
-                     // Set fill style based on whether we are drawing or erasing pixels
-                    ctx.fillStyle = activeTool === 'pixelErase' ? getCurrentBgColor() : brushColor;
-                    ctx.fillRect(currentGridX * brushSize, currentGridY * brushSize, brushSize, brushSize);
-                    lastGridX = currentGridX;
-                    lastGridY = currentGridY;
+            isDrawing = true;
+            const pos = getMousePos(event);
+            lastX = pos.x;
+            lastY = pos.y;
+
+            // For pixel mode, draw the first pixel immediately
+            if (isPixelMode) {
+                if (currentTool === 'draw') {
+                    drawPixel(lastX, lastY, brushColor, brushSize);
+                } else if (currentTool === 'erase') {
+                    erasePixel(lastX, lastY, brushSize);
                 }
-            } else if (activeTool === 'line') { // Use activeTool for line preview
-                 // Clear canvas and redraw previous state for line preview
-                 restoreState(historyIndex); // Redraw the last saved state
+                 lastGridX = Math.floor(lastX / brushSize) * brushSize; // Initialize last grid pos
+                 lastGridY = Math.floor(lastY / brushSize) * brushSize; // Initialize last grid pos
+            } else {
+                 // Start a new path for continuous drawing
+                 ctx.beginPath();
+                 ctx.moveTo(lastX, lastY);
+            }
+            saveState(); // Save state at the start of a drawing action (except for line, saved above)
+        }
 
-                 // Draw the temporary line
-                 if (toolBeforeShift === 'pixel') { // If the tool before shift was pixel, draw pixel line preview
-                      drawPixelLine(startLineX, startLineY, currentX, currentY, brushColor, brushSize);
-                 } else if (toolBeforeShift === 'pixelErase') { // If the tool before shift was pixel erase, draw pixel erase line preview
-                      drawPixelLine(startLineX, startLineY, currentX, currentY, brushColor, brushSize, true); // Pass true for erasing
-                 } else if (toolBeforeShift === 'erase') { // If the tool before line was erase, draw erase line preview
-                      // Temporarily change stroke style to background color for erase preview
-                      const tempStrokeStyle = ctx.strokeStyle;
-                      ctx.strokeStyle = getCurrentBgColor();
-                      ctx.beginPath();
-                      ctx.moveTo(startLineX, startLineY);
-                      ctx.lineTo(currentX, currentY);
-                      ctx.stroke();
-                      ctx.strokeStyle = tempStrokeStyle; // Restore stroke style
-                 }
-                 else { // Default to normal line draw preview
-                      ctx.beginPath();
-                      ctx.moveTo(startLineX, startLineY);
-                      ctx.lineTo(currentX, currentY);
-                      ctx.stroke();
-                 }
-            } else if (activeTool === 'image' && uploadedImage && isDraggingImage) { // Handle image dragging
-                 // Clear canvas and redraw the base drawing from the current state
-                 setCanvasBackground();
-                 // Get the base drawing data from the current history state
-                 const currentBaseImageData = history[historyIndex].imageData;
-                 if (currentBaseImageData) {
-                     ctx.putImageData(currentBaseImageData, 0, 0);
-                     console.log("Redrew base drawing for image drag.");
-                 } else {
-                     console.log("No base drawing to redraw for image drag.");
-                 }
-
-
-                 // Calculate new image position
+        // Performs the drawing action
+        function draw(event) {
+            // Allow image dragging even if not 'isDrawing'
+            if (activeTool === 'image' && isDraggingImage) {
+                 const pos = getMousePos(event);
+                 const currentX = pos.x;
+                 const currentY = pos.y;
+                 // Update image position while dragging
                  imageX = currentX - dragOffsetX;
                  imageY = currentY - dragOffsetY;
-
-                 // Redraw the image at the new position
-                 drawImageOnCanvas();
-            }
-            // Text tool does not draw on mousemove
-
-
-            [lastX, lastY] = [currentX, currentY];
-        }
-
-        function startDrawing(e) {
-            // Prevent default middle mouse button behavior (scrolling)
-             if (e.button === 1) {
-                 e.preventDefault();
-             }
-
-            // Determine click/touch position relative to canvas
-            const rect = canvas.getBoundingClientRect();
-            let startX, startY;
-             if (e.touches && e.touches.length > 0) {
-                 startX = e.touches[0].clientX - rect.left;
-                 startY = e.touches[0].clientY - rect.top;
-                 e.preventDefault(); // Prevent default touch behavior
-             } else {
-                 startX = e.offsetX;
-                 startY = e.offsetY;
-             }
-
-             // Check if click/touch is within canvas bounds
-             if (startX >= 0 && startX <= canvas.width && startY >= 0 && startY <= canvas.height) {
-
-                 if (activeTool === 'fill') { // Use activeTool
-                     // Get the color of the clicked pixel
-                     const targetColor = ctx.getImageData(startX, startY, 1, 1).data;
-                     // Get the replacement color (current brush color)
-                     const replacementColor = hexToRgba(brushColor);
-
-                     // Perform the flood fill
-                     floodFill(startX, startY, targetColor, replacementColor);
-                     showMessage('Canvas gevuld');
-                     saveState(); // Save state after fill
-
-                 } else if (activeTool === 'draw' || activeTool === 'erase' || activeTool === 'pixel' || activeTool === 'pixelErase') { // Use activeTool and add pixelErase
-                     // Handle drawing or erasing lines/pixels
-                     isDrawing = true;
-                     [lastX, lastY] = [startX, startY];
-
-                     if (activeTool === 'pixel' || activeTool === 'pixelErase') { // Add pixelErase
-                         const startGridX = Math.floor(startX / brushSize);
-                         const startGridY = Math.floor(startY / brushSize);
-                         [lastGridX, lastGridY] = [startGridX, startGridY];
-                          // Draw the first pixel immediately on click
-                         ctx.fillStyle = activeTool === 'pixelErase' ? getCurrentBgColor() : brushColor; // Set fill style based on tool
-                         ctx.fillRect(startGridX * brushSize, startGridY * brushSize, brushSize, brushSize);
-                     }
-
-
-                     // Zorg dat instellingen correct zijn bij start
-                     restoreDrawingSettings();
-
-                     // Optional: Draw a point at the start for smoother lines
-                     // if (activeTool !== 'pixel' && activeTool !== 'pixelErase') { // Add pixelErase
-                     //     ctx.beginPath();
-                     //     ctx.arc(lastX, lastY, brushSize / 2, 0, Math.PI * 2);
-                     //     ctx.fillStyle = ctx.strokeStyle; // Use stroke color for point
-                     //     ctx.fill();
-                     //     ctx.beginPath(); // Start new path for the line
-                     //     ctx.moveTo(lastX, lastY);
-                     // }
-
-                 } else if (activeTool === 'text') { // Use activeTool
-                     // Handle text placement
-                     textPlacementX = startX;
-                     textPlacementY = startY;
-                     textInputModal.classList.add('visible'); // Show the modal
-                     textInput.focus(); // Focus the text area
-                 } else if (activeTool === 'line') { // Use activeTool
-                     // Handle line start
-                     isDrawing = true;
-                     startLineX = startX;
-                     startLineY = startY;
-                     [lastX, lastY] = [startX, startY]; // Also track last position for potential future use
-                     restoreDrawingSettings(); // Ensure settings are correct for line drawing
-                 } else if (activeTool === 'image' && uploadedImage) { // Handle image dragging start
-                      // Check if the click is within the image bounds (simple rect check for now)
-                     if (startX >= imageX && startX <= imageX + imageWidth && startY >= imageY && startY <= imageY + imageHeight) {
-                         isDrawing = true; // Use isDrawing to indicate active interaction
-                         isDraggingImage = true;
-                         dragOffsetX = startX - imageX;
-                         dragOffsetY = startY - imageY;
-                         canvas.style.cursor = 'grabbing'; // Change cursor while dragging
-                         console.log("Started dragging image.");
-                     }
-                 }
-             }
-
-              // Handle panning with middle mouse button
-              if (e.button === 1) { // Middle mouse button
-                  isPanning = true;
-                  panStartX = screenX;
-                  panStartY = screenY;
-                  canvas.style.cursor = 'grabbing'; // Change cursor while panning
-              }
-        }
-
-        function stopDrawing(e) {
-            if (isDrawing) {
-                isDrawing = false;
-
-                 if (activeTool === 'line') { // Use activeTool
-                     const rect = canvas.getBoundingClientRect();
-                     let endX, endY;
-                     if (e.touches && e.touches.length > 0) {
-                         endX = e.touches[0].clientX - rect.left;
-                         endY = e.touches[0].clientY - rect.top;
-                     } else {
-                         endX = e.offsetX;
-                         endY = e.offsetY;
-                     }
-
-                     // Draw the final line
-                     if (toolBeforeShift === 'pixel') { // If the tool before line was pixel
-                          drawPixelLine(startLineX, startLineY, endX, endY, brushColor, brushSize);
-                     } else if (toolBeforeShift === 'pixelErase') { // If the tool before line was pixel erase
-                           drawPixelLine(startLineX, startLineY, endX, endY, brushColor, brushSize, true); // Pass true for erasing
-                     } else if (toolBeforeShift === 'erase') { // If the tool before line was erase
-                          // Temporarily change stroke style to background color for erase
-                          const tempStrokeStyle = ctx.strokeStyle;
-                          ctx.strokeStyle = getCurrentBgColor();
-                          ctx.beginPath();
-                          ctx.moveTo(startLineX, startLineY);
-                          ctx.lineTo(endX, endY);
-                          ctx.stroke();
-                          ctx.strokeStyle = tempStrokeStyle; // Restore stroke style
-                     }
-                     else { // Default to normal line draw
-                          ctx.beginPath();
-                          ctx.moveTo(startLineX, startLineY);
-                          ctx.lineTo(endX, endY);
-                          ctx.stroke();
-                     }
-
-                     saveState(); // Save state after drawing the line
-
-                 } else if (activeTool === 'draw' || activeTool === 'erase') { // Use activeTool
-                     ctx.beginPath(); // Reset pad om losse lijnen te voorkomen
-                     saveState(); // Save state after drawing stroke is finished
-                 } else if (activeTool === 'pixel' || activeTool === 'pixelErase') { // Use activeTool and add pixelErase
-                     // No path reset needed for pixel tool
-                     saveState(); // Save state after pixel session is finished
-                 } else if (activeTool === 'image' && uploadedImage && isDraggingImage) { // Handle image dragging stop
-                      isDraggingImage = false;
-                      canvas.style.cursor = 'move'; // Restore cursor
-                      saveState(); // Save state after dragging is finished
-                      console.log("Stopped dragging image.");
-                 }
-                 // Text tool saves state when text is added via modal
+                 // Redraw the canvas with the updated image position
+                 redrawCanvas();
+                 return; // Don't proceed with other drawing logic
             }
 
-             // Stop panning if middle mouse button is released
-             if (e.button === 1) { // Middle mouse button
-                 isPanning = false;
-                 restoreDrawingSettings(); // Restore cursor
-             }
-        }
+            // Rest of the drawing logic only if isDrawing is true
+            if (!isDrawing) return; // Only draw if isDrawing is true
 
-        // Function to handle key presses
-        function handleKeyDown(e) {
-            // Check if Shift is pressed and we are not currently drawing/panning/modal open
-            if (e.key === 'Shift' && !e.repeat && !isDrawing && !isPanning && !textInputModal.classList.contains('visible')) {
-                toolBeforeShift = currentTool; // Store the current tool
-                // Activate line tool based on the tool before shift
-                if (currentTool === 'draw' || currentTool === 'erase' || currentTool === 'pixel' || currentTool === 'pixelErase' || currentTool === 'line') { // Add pixelErase
-                     activeTool = 'line';
-                     // Show message indicating line mode is active
-                     showMessage(`Lijnmodus geactiveerd (met ${toolBeforeShift === 'pixel' ? 'Pixel Pen' : toolBeforeShift === 'pixelErase' ? 'Pixel Gum' : toolBeforeShift === 'erase' ? 'Gum' : 'Tekenen'} stijl)`); // Update message
+            const pos = getMousePos(event);
+            const currentX = pos.x;
+            const currentY = pos.y;
+
+            if (activeTool === 'line') {
+                redrawCanvas(); // Clear canvas and redraw previous state
+
+                if (isPixelMode) {
+                    // Pixel line drawing using a simplified Bresenham-like approach
+                    const x0 = Math.floor(startLineX / brushSize) * brushSize;
+                    const y0 = Math.floor(startLineY / brushSize) * brushSize;
+                    const x1 = Math.floor(currentX / brushSize) * brushSize;
+                    const y1 = Math.floor(currentY / brushSize) * brushSize;
+
+                    const dx = Math.abs(x1 - x0);
+                    const dy = Math.abs(y1 - y0);
+                    const sx = (x0 < x1) ? brushSize : -brushSize;
+                    const sy = (y0 < y1) ? brushSize : -brushSize;
+                    let err = dx - dy;
+
+                    let x = x0;
+                    let y = y0;
+
+                    while (true) {
+                        drawPixel(x, y, brushColor, brushSize); // Draw the pixel
+
+                        if ((x === x1) && (y === y1)) break;
+                        const e2 = 2 * err;
+                        if (e2 > -dy) { err -= dy; x += sx; }
+                        if (e2 < dx) { err += dx; y += sy; }
+                    }
+
                 } else {
-                     // If current tool is fill or text, default to draw line
-                     activeTool = 'line';
-                     toolBeforeShift = 'draw'; // Set the style to draw
-                     showMessage('Lijnmodus geactiveerd (met Tekenen stijl)');
+                    // Regular smooth line drawing
+                    ctx.lineWidth = brushSize;
+                    ctx.lineCap = 'round';
+                    ctx.lineJoin = 'round';
+                    ctx.strokeStyle = brushColor;
+
+                    ctx.beginPath();
+                    ctx.moveTo(startLineX, startLineY);
+                    ctx.lineTo(currentX, currentY);
+                    ctx.stroke();
+                    ctx.closePath();
                 }
-                 restoreDrawingSettings(); // Update cursor and settings
+                return; // Stop here for line tool
             }
-             // Prevent default behavior for Shift key if it activates line mode
-             if (e.key === 'Shift' && activeTool === 'line') {
-                 e.preventDefault();
+
+            if (isPixelMode) {
+                // In pixel mode, draw pixels based on grid
+                if (currentTool === 'draw') {
+                    drawPixel(currentX, currentY, brushColor, brushSize);
+                } else if (currentTool === 'erase') {
+                    erasePixel(currentX, currentY, brushSize);
+                }
+            } else {
+                // Regular drawing mode
+                ctx.lineWidth = brushSize;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+
+                if (currentTool === 'draw') {
+                    ctx.strokeStyle = brushColor;
+                    ctx.lineTo(currentX, currentY);
+                    ctx.stroke();
+                } else if (currentTool === 'erase') {
+                    // Use 'destination-out' composite operation for erasing
+                    ctx.globalCompositeOperation = 'destination-out';
+                    ctx.strokeStyle = 'rgba(0,0,0,1)'; // Color doesn't matter for erase, but needs to be set
+                    ctx.lineTo(currentX, currentY);
+                    ctx.stroke();
+                    ctx.globalCompositeOperation = 'source-over'; // Reset to default
+                }
+                lastX = currentX;
+                lastY = currentY;
+            }
+        }
+
+        // Stops the drawing process
+        function stopDrawing(event) {
+             // Stop image dragging even if not 'isDrawing'
+             if (activeTool === 'image' && isDraggingImage) {
+                 isDraggingImage = false;
+                 canvas.style.cursor = activeTool === 'image' && uploadedImage ? 'move' : 'crosshair'; // Restore cursor
+                 saveState(); // Save state after image is dropped
+                 return; // Don't proceed with other stop logic
+             }
+
+            // Rest of the stop drawing logic only if isDrawing is true
+            if (!isDrawing) return; // Only stop if isDrawing is true
+
+            isDrawing = false;
+            ctx.closePath(); // Close the path for regular drawing
+
+            // For line tool, the final line is drawn in the last mousemove before mouseup
+            // We just need to save the state here if it was a line drawing action
+             if (activeTool === 'line') {
+                 // The final line is drawn in the last mousemove before mouseup
+                 // We just need to save the state here.
+                 // saveState(); // State is already saved at the start of line draw, no need to save again here
+             } else {
+                 // For other tools, save state after the drawing action is complete
+                 // (already saved at the start, but saving again ensures the final state is captured)
+                 // saveState(); // This might save too many states, let's rely on the startDrawing save
+             }
+
+
+            // Reset pixel grid tracking
+            lastGridX = -1;
+            lastGridY = -1;
+        }
+
+        // Handles clicks on the canvas (for fill and text tools)
+        function handleCanvasClick(event) {
+            const pos = getMousePos(event);
+            const clickX = Math.floor(pos.x);
+            const clickY = Math.floor(pos.y);
+
+            if (currentTool === 'fill') {
+                // Get the color of the clicked pixel
+                const pixelColor = ctx.getImageData(clickX, clickY, 1, 1).data;
+                const targetColor = [pixelColor[0], pixelColor[1], pixelColor[2], pixelColor[3]];
+
+                // Get the replacement color (current brush color)
+                const replacementColor = hexToRgba(brushColor);
+
+                // Perform flood fill
+                saveState(); // Save state before filling
+                floodFill(clickX, clickY, targetColor, replacementColor);
+                saveState(); // Save state after filling
+            } else if (currentTool === 'text') {
+                // Store the click position for text placement
+                textPlacementX = clickX;
+                textPlacementY = clickY;
+                // Show the text input modal
+                textInputModal.classList.add('visible');
+                 // Set the default font in the modal to the saved font
+                 fontSelect.value = savedFont;
+                 // Update the text size value span
+                 textSizeValue.textContent = textSizeSlider.value;
+            } else if (currentTool === 'image' && uploadedImage) {
+                 // If in image tool and an image is loaded, check if the click is on the image
+                 if (clickX >= imageX && clickX <= imageX + imageWidth && clickY >= imageY && clickY <= imageY + imageHeight) {
+                     // If clicked on the image, do nothing or perhaps show options (not implemented)
+                     console.log("Clicked on the image.");
+                 } else {
+                     // If clicked outside the image, maybe finalize the image position?
+                     // For now, we just don't do anything on click outside the image.
+                     console.log("Clicked outside the image.");
+                 }
+            }
+        }
+
+        // Redraws the canvas, including the base drawing and the current image if any
+        function redrawCanvas() {
+             // Always clear the canvas and set the background
+             setCanvasBackground();
+
+             // Restore the base drawing from the current history state if available
+             if (historyIndex >= 0 && history[historyIndex].imageData) {
+                 ctx.putImageData(history[historyIndex].imageData, 0, 0);
+             } else if (historyIndex === -1 && history.length > 0 && history[0].imageData) {
+                 // Handle case where historyIndex is -1 but there's an initial state
+                  ctx.putImageData(history[0].imageData, 0, 0);
+             }
+
+
+             // Draw the uploaded image if it exists and is the current state
+             if (uploadedImage && historyIndex >= 0 && history[historyIndex].type === 'image') {
+                 drawImageOnCanvas();
              }
         }
 
-        // Function to handle key releases
-        function handleKeyUp(e) {
-            // Check if Shift is released and the line tool was active due to Shift
-            if (e.key === 'Shift' && activeTool === 'line') {
-                activeTool = toolBeforeShift; // Restore the tool before Shift
-                restoreDrawingSettings(); // Update cursor and settings
-                showMessage(`${activeTool === 'pixel' ? 'Pixel Pen' : activeTool === 'pixelErase' ? 'Pixel Gum' : activeTool === 'erase' ? 'Gum' : activeTool === 'text' ? 'Tekst' : 'Tekenen'} geactiveerd`); // Update message
-            }
+        // Draws the uploaded image onto the canvas
+        function drawImageOnCanvas() {
+             if (uploadedImage) {
+                 ctx.save(); // Save the current canvas state
+                 ctx.translate(imageX + imageWidth / 2, imageY + imageHeight / 2); // Move origin to center of image
+                 ctx.rotate(imageRotation); // Apply rotation
+                 ctx.drawImage(uploadedImage, -imageWidth / 2, -imageHeight / 2, imageWidth, imageHeight); // Draw image centered
+                 ctx.restore(); // Restore canvas state
+             }
         }
 
 
-        // --- Event Listeners ---
+        // --- Event Handlers ---
 
-        // Muis
-        canvas.addEventListener('mousedown', startDrawing);
-        canvas.addEventListener('mousemove', draw);
-        canvas.addEventListener('mouseup', stopDrawing);
-        canvas.addEventListener('mouseleave', stopDrawing); // Stop als muis canvas verlaat
+        // Update brush size value display
+        brushSizeSlider.addEventListener('input', (e) => {
+            brushSize = parseInt(e.target.value);
+            brushSizeValue.textContent = brushSize;
+        });
 
-        // Touch
-        canvas.addEventListener('touchstart', startDrawing);
-        canvas.addEventListener('touchmove', draw);
-        canvas.addEventListener('touchend', stopDrawing);
-        canvas.addEventListener('touchcancel', stopDrawing); // Stop bij annuleren
-
-        // Keyboard
-        window.addEventListener('keydown', handleKeyDown);
-        window.addEventListener('keyup', handleKeyUp);
-
-
-        // Toolbar Knoppen
+        // Update brush color
         colorPicker.addEventListener('input', (e) => {
             brushColor = e.target.value;
-            savedColor = brushColor; // Save selected color
-            // Update fill style for fill tool immediately
-            if (currentTool === 'fill') {
-                ctx.fillStyle = brushColor;
-            }
-            // If currently erasing, switch back to drawing with the new color
-            if (currentTool === 'erase') {
-                 currentTool = 'draw';
-                 activeTool = 'draw'; // Also update active tool
-                 showMessage('Gum gedeactiveerd, tekenen geactiveerd');
-            } else if (currentTool === 'pixelErase') { // Add pixelErase
-                 currentTool = 'pixel';
-                 activeTool = 'pixel'; // Also update active tool
-                 showMessage('Pixel Gum gedeactiveerd, Pixel Pen geactiveerd');
-            } else if (currentTool === 'fill') {
-                 // If fill is active, just update the color, stay in fill mode
-                 showMessage('Kleur gewijzigd voor vullen');
-            } else if (currentTool === 'pixel') {
-                 // If pixel is active, just update the color, stay in pixel mode
-                 showMessage('Pixelkleur gewijzigd');
-            } else if (currentTool === 'text') {
-                 // If text is active, just update the color, stay in text mode
-                 showMessage('Tekstkleur gewijzigd');
-            } else if (currentTool === 'line') {
-                 // If line is active, just update the color, stay in line mode
-                 showMessage('Lijnkleur gewijzigd');
-            } else if (currentTool === 'image') {
-                 // If image tool is active, changing color doesn't affect the image itself,
-                 // but it might affect future text or drawing actions after switching tools.
-                 // No message needed here.
-            }
-            restoreDrawingSettings(); // Update settings and button styles
+            savedColor = brushColor; // Also update saved color
         });
 
-        brushSizeSlider.addEventListener('input', (e) => {
-            brushSize = e.target.value;
-            brushSizeValue.textContent = brushSize;
-            restoreDrawingSettings(); // Update lijn dikte/pixel grootte (text size is separate now)
-        });
-
-        clearBtn.addEventListener('click', () => {
-            setCanvasBackground(); // Vul met juiste achtergrond (always white)
-            uploadedImage = null; // Clear uploaded image on clear
-            showMessage('Canvas gewist');
-            saveState(); // Save state after clearing
-            restoreDrawingSettings(); // Zorg dat instellingen kloppen voor verder tekenen
-        });
-
+        // Select Draw tool
         drawBtn.addEventListener('click', () => {
             currentTool = 'draw';
-            activeTool = 'draw'; // Set active tool
-            brushColor = savedColor; // Restore saved color when switching back to draw
-            showMessage('Tekenen geactiveerd');
-            restoreDrawingSettings();
+            activeTool = 'draw'; // Ensure activeTool is also draw
+            brushColor = savedColor; // Restore drawing color
+            updateToolButtonStyles();
         });
 
+        // Select Eraser tool
         eraserBtn.addEventListener('click', () => {
             currentTool = 'erase';
-            activeTool = 'erase'; // Set active tool
-            // No need to save color here, it's saved when colorPicker changes
-            showMessage('Gum geactiveerd');
-            restoreDrawingSettings(); // Update style and active button
+            activeTool = 'erase'; // Ensure activeTool is also erase
+            updateToolButtonStyles();
         });
 
+        // Select Fill tool
         fillBtn.addEventListener('click', () => {
             currentTool = 'fill';
-            activeTool = 'fill'; // Set active tool
-             // No need to save color here, it's saved when colorPicker changes
-            showMessage('Vullen geactiveerd');
-            restoreDrawingSettings(); // Update style and active button
+            activeTool = 'fill'; // Ensure activeTool is also fill
+            brushColor = savedColor; // Restore drawing color
+            updateToolButtonStyles();
         });
 
-        pixelPenBtn.addEventListener('click', () => {
-            currentTool = 'pixel';
-            activeTool = 'pixel'; // Set active tool
-            brushColor = savedColor; // Use saved color for pixel art
-            showMessage('Pixel Pen geactiveerd');
-            restoreDrawingSettings(); // Update style and active button
-        });
-
+        // Select Text tool
         textBtn.addEventListener('click', () => {
             currentTool = 'text';
-            activeTool = 'text'; // Set active tool
-            showMessage('Tekst tool geactiveerd. Klik op canvas om tekst te plaatsen.');
-            restoreDrawingSettings(); // Update style and active button
+            activeTool = 'text'; // Ensure activeTool is also text
+            updateToolButtonStyles();
         });
 
-        lineBtn.addEventListener('click', () => { // Add event listener for line button
+        // Select Line tool
+        lineBtn.addEventListener('click', () => {
             currentTool = 'line';
-            activeTool = 'line'; // Set active tool
-            toolBeforeShift = 'draw'; // Default line style to draw when button is clicked
-            showMessage('Lijn tool geactiveerd');
-            restoreDrawingSettings(); // Update style and active button
+            activeTool = 'line'; // Ensure activeTool is also line
+            brushColor = savedColor; // Restore drawing color
+            updateToolButtonStyles();
         });
 
-        // Event listener for the new Pixel Eraser button
-        pixelEraserBtn.addEventListener('click', () => {
-            currentTool = 'pixelErase';
-            activeTool = 'pixelErase'; // Set active tool
-            showMessage('Pixel Gum geactiveerd');
-            restoreDrawingSettings(); // Update style and active button
-        });
-
-        // Event listener for the Image Upload button
+        // Trigger image upload input click
         uploadImageBtn.addEventListener('click', () => {
-            imageUploadInput.click(); // Trigger the hidden file input click
+            imageUploadInput.click();
         });
 
-        // Event listener for the hidden file input
+        // Handle image file selection
         imageUploadInput.addEventListener('change', (event) => {
             const file = event.target.files[0];
             if (file) {
@@ -1491,180 +1122,344 @@
                 reader.onload = (e) => {
                     const img = new Image();
                     img.onload = () => {
-                        console.log("Image loaded successfully:", img.width, "x", img.height);
-                        // Calculate image size and position
-                        const aspectRatio = img.width / img.height;
-                        const maxCanvasWidth = canvas.width * 0.8; // Limit to 80% of canvas width
-                        const maxCanvasHeight = canvas.height * 0.8; // Limit to 80% of canvas height
-
-                        let newImageWidth, newImageHeight;
-
-                        if (img.width > maxCanvasWidth || img.height > maxCanvasHeight) {
-                             if (img.width / maxCanvasWidth > img.height / maxCanvasHeight) {
-                                 newImageWidth = maxCanvasWidth;
-                                 newImageHeight = maxCanvasWidth / aspectRatio;
-                             } else {
-                                 newImageHeight = maxCanvasHeight;
-                                 newImageWidth = maxCanvasHeight * aspectRatio;
-                             }
-                        } else {
-                            newImageWidth = img.width;
-                            newImageHeight = img.height;
-                        }
-
-                        console.log("Calculated image size:", newImageWidth, "x", newImageHeight);
-                        let newImageX = (canvas.width - newImageWidth) / 2;
-                        let newImageY = (canvas.height - newImageHeight) / 2;
-                        let newImageRotation = 0; // Reset rotation
-                         console.log("Initial image position:", newImageX, newImageY);
-
-                        // Find the most recent drawing state (before any potential image states)
-                        let drawingStateIndex = historyIndex;
-                        while(drawingStateIndex >= 0 && history[drawingStateIndex].type === 'image') {
-                            drawingStateIndex--;
-                        }
-
-                        // Restore the drawing state (or clear if no drawing states)
-                        if (drawingStateIndex >= 0) {
-                             // Temporarily set uploadedImage to null before restoring to prevent drawImageOnCanvas
-                             // from drawing the *old* image during the restore of the base layer.
-                             const tempImage = uploadedImage;
-                             uploadedImage = null;
-                             restoreState(drawingStateIndex);
-                             uploadedImage = tempImage; // Restore the temp image variable
-
-                             console.log("Restored drawing state before adding new image.");
-                        } else {
-                            setCanvasBackground(); // Clear canvas if no previous drawing state
-                            uploadedImage = null; // Ensure uploadedImage is null if starting fresh
-                            console.log("Cleared canvas, no previous drawing state found.");
-                        }
-
-
-                        // Now set the new image and its properties
                         uploadedImage = img;
-                        imageX = newImageX;
-                        imageY = newImageY;
-                        imageWidth = newImageWidth;
-                        imageHeight = newImageHeight;
-                        imageRotation = newImageRotation;
+                        // Set initial image position and size (centered and scaled)
+                        const maxCanvasDim = Math.min(canvas.width, canvas.height);
+                        const maxImageDim = Math.max(img.width, img.height);
+                        let scale = 1;
+                        if (maxImageDim > maxCanvasDim * 0.8) { // Scale down if image is too large
+                             scale = (maxCanvasDim * 0.8) / maxImageDim;
+                        }
+                        imageWidth = img.width * scale;
+                        imageHeight = img.height * scale;
+                        imageX = (canvas.width - imageWidth) / 2;
+                        imageY = (canvas.height - imageHeight) / 2;
+                        imageRotation = 0; // Reset rotation on new image
 
-
-                        // Draw the newly uploaded image on top of the restored drawing
-                        drawImageOnCanvas();
-
-                        // Set tool to image manipulation
-                        currentTool = 'image';
-                        activeTool = 'image';
-                        restoreDrawingSettings(); // Update button styles and cursor
-
-                        saveState(); // Save the new state which *will* include the image
-                        showMessage('Afbeelding geüpload en geplaatst');
+                        currentTool = 'image'; // Switch to image tool
+                        activeTool = 'image'; // Set active tool to image
+                        updateToolButtonStyles();
+                        saveState(); // Save state with the new image
+                        redrawCanvas(); // Draw the image on the canvas
+                        showMessage("Afbeelding geladen. Klik en sleep om te verplaatsen.");
                     };
                     img.onerror = () => {
-                        console.error("Error loading image.");
-                        showMessage('Kan afbeelding niet laden. Zorg ervoor dat het een geldige afbeelding is.');
-                        // Reset file input value to allow uploading the same file again if needed
-                        imageUploadInput.value = '';
+                         showMessage("Fout bij het laden van de afbeelding.");
                     };
                     img.src = e.target.result;
                 };
-                reader.onerror = (e) => {
-                     console.error("Error reading file:", e);
-                     showMessage('Fout bij het lezen van het bestand.');
-                     imageUploadInput.value = '';
-                };
                 reader.readAsDataURL(file);
-            } else {
-                console.log("No file selected.");
-            }
-             // Reset the file input value so the same file can be selected again
-             event.target.value = '';
-        });
-
-
-        undoBtn.addEventListener('click', undo);
-        redoBtn.addEventListener('click', redo);
-
-        // Event listeners for the side menu
-        openMenuBtn.addEventListener('click', openMenu);
-        closeMenuBtn.addEventListener('click', closeMenu);
-        exportBtn.addEventListener('click', exportCanvasAsPNG); // Add event listener for export button
-
-        // Event listeners for the text input modal
-        addTextBtn.addEventListener('click', addTextToCanvas);
-        cancelTextBtn.addEventListener('click', cancelTextInput);
-        // Update text size value display
-        textSizeSlider.addEventListener('input', (e) => {
-            textSizeValue.textContent = e.target.value;
-        });
-        // Allow adding text by pressing Enter in the textarea
-        textInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter' && !e.shiftKey) { // Allow Shift+Enter for new line
-                e.preventDefault(); // Prevent default Enter behavior (new line)
-                addTextToCanvas();
             }
         });
 
 
+        // Undo button
+        undoBtn.addEventListener('click', () => {
+            if (historyIndex > 0) {
+                restoreState(historyIndex - 1);
+            }
+        });
+
+        // Redo button
+        redoBtn.addEventListener('click', () => {
+            if (historyIndex < history.length - 1) {
+                restoreState(historyIndex + 1);
+            }
+        });
+
+        // Clear canvas button
+        clearBtn.addEventListener('click', () => {
+            saveState(); // Save the current state before clearing
+            setCanvasBackground(); // Clear and set background
+            uploadedImage = null; // Also clear the uploaded image
+            imageX = 0;
+            imageY = 0;
+            imageWidth = 0;
+            imageHeight = 0;
+            imageRotation = 0;
+            saveState(); // Save the cleared state
+            showMessage("Canvas gewist.");
+        });
+
+        // Open side menu
+        openMenuBtn.addEventListener('click', () => {
+            sideMenu.classList.add('open');
+        });
+
+        // Close side menu
+        closeMenuBtn.addEventListener('click', () => {
+            sideMenu.classList.remove('open');
+        });
+
+        // Dark mode toggle (inside side menu)
         darkModeToggle.addEventListener('click', () => {
-            if (body.classList.contains('dark-mode')) {
-                // Currently in dark mode, trying to switch to light mode
+            if (currentTheme === 'light') {
                 lightModeClickCount++;
                 if (lightModeClickCount >= clicksToLightMode) {
-                    // Switch to light mode after enough clicks
-                    applyTheme('light');
-                    showMessage('Modus gewijzigd naar licht');
-                    lightModeClickCount = 0; // Reset counter
-                } else {
-                    // Update button text to show progress
+                    body.classList.remove('dark-mode');
+                    currentTheme = 'light';
+                    localStorage.setItem('theme', 'light');
                     darkModeToggle.textContent = `☀️ Licht (Klik ${lightModeClickCount}/${clicksToLightMode})`;
-                    showMessage(`Nog ${clicksToToLightMode - lightModeClickCount} keer klikken voor lichte modus`);
+                    showMessage("Lichte modus geactiveerd!");
+                } else {
+                    darkModeToggle.textContent = `☀️ Licht (Klik ${lightModeClickCount}/${clicksToLightMode})`;
+                    showMessage(`Nog ${clicksToLightMode - lightModeClickCount} klik(s) voor lichte modus.`);
                 }
+            } else { // Currently dark mode
+                body.classList.add('dark-mode');
+                currentTheme = 'dark';
+                localStorage.setItem('theme', 'dark');
+                darkModeToggle.textContent = `🌙 Donker`;
+                lightModeClickCount = 0; // Reset click count
+                showMessage("Donkere modus geactiveerd.");
+            }
+            // After changing theme, redraw to update canvas border color if needed
+            redrawCanvas();
+        });
+
+         // Pixel Mode Toggle (inside side menu)
+         pixelModeToggle.addEventListener('click', () => {
+             isPixelMode = !isPixelMode; // Toggle pixel mode
+             updateToolButtonStyles(); // Update button text and active state
+             showMessage(`Pixel Art Mode: ${isPixelMode ? 'Aan' : 'Uit'}`);
+             // Note: Brush size slider still controls the pixel size in pixel mode.
+         });
+
+
+        // Export canvas as PNG (inside side menu)
+        exportBtn.addEventListener('click', () => {
+            const link = document.createElement('a');
+            link.download = 'tekening.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+            showMessage("Afbeelding geëxporteerd als PNG.");
+        });
+
+        // Text input modal: Add Text button
+        addTextBtn.addEventListener('click', () => {
+            const text = textInput.value.trim();
+            const font = fontSelect.value;
+            const size = parseInt(textSizeSlider.value);
+            const color = brushColor; // Use current brush color for text
+
+            if (text) {
+                saveState(); // Save state before adding text
+
+                ctx.fillStyle = color;
+                ctx.font = `${size}px "${font}"`;
+                ctx.fillText(text, textPlacementX, textPlacementY + size * 0.8); // Adjust Y for baseline
+
+                saveState(); // Save state after adding text
+                textInput.value = ''; // Clear text input
+                textInputModal.classList.remove('visible');
+                showMessage("Tekst toegevoegd.");
             } else {
-                // Currently in light mode, switch to dark mode immediately
-                applyTheme('dark');
-                showMessage('Modus gewijzigd naar donker');
+                showMessage("Voer tekst in om toe te voegen.");
             }
         });
 
-        // Laden en Resize
-        window.addEventListener('load', () => {
-            console.log("Window loaded.");
-            // 1. Pas initieel thema toe (standaard is nu 'dark')
-            applyTheme(currentTheme); // Dit triggert rAF voor achtergrond etc.
-
-            // 2. Wacht tot eerste frame na thema is toegepast, dan resize
-            requestAnimationFrame(() => {
-                console.log("First animation frame after theme applied.");
-                resizeCanvas(); // Stelt grootte in, vult bg (white), herstelt evt. tekening/instellingen
-
-                 // 3. Zet initiele kleur/grootte correct na laden en eerste resize
-                brushColor = colorPicker.value;
-                savedColor = brushColor; // Save initial color
-                brushSize = brushSizeSlider.value;
-                brushSizeValue.textContent = brushSize; // Update label
-                // Set initial text size value display
-                textSizeValue.textContent = textSizeSlider.value;
-                restoreDrawingSettings(); // Pas de initiële instellingen toe
-
-                // Save the initial state after everything is set up
-                saveState();
-                console.log("Initial state saved.");
-            });
+        // Text input modal: Cancel button
+        cancelTextBtn.addEventListener('click', () => {
+            textInput.value = ''; // Clear text input
+            textInputModal.classList.remove('visible');
+            showMessage("Tekst toevoegen geannuleerd.");
         });
 
-        // Gebruik ResizeObserver voor betere performance dan 'resize' event
-        const resizeObserver = new ResizeObserver(entries => {
-             // Wacht een fractie om te voorkomen dat resize te vaak triggert
-             requestAnimationFrame(() => {
-                 resizeCanvas(); // resizeCanvas now handles saving state after resize
-             });
+         // Text size slider update value display
+         textSizeSlider.addEventListener('input', (e) => {
+             textSizeValue.textContent = e.target.value;
+         });
+
+         // Save selected font when changed in modal
+         fontSelect.addEventListener('change', (e) => {
+             savedFont = e.target.value;
+         });
+
+
+        // --- Canvas Event Listeners ---
+
+        // Mouse events
+        canvas.addEventListener('mousedown', (e) => {
+             // Middle mouse button for panning
+             if (e.button === 1) { // Middle mouse button
+                 isPanning = true;
+                 const pos = getMousePos(e);
+                 panStartX = pos.x;
+                 panStartY = pos.y;
+                 canvas.style.cursor = 'grabbing';
+                 return; // Don't start drawing if panning
+             }
+             // Only start drawing with left mouse button (button 0)
+             if (e.button === 0) {
+                startDrawing(e);
+             }
         });
-        // Observeer de container van het canvas
-        resizeObserver.observe(canvasContainer);
+
+        canvas.addEventListener('mousemove', (e) => {
+             if (isPanning) {
+                 // Panning logic (not fully implemented, would require translating the canvas context)
+                 // For now, we just change cursor
+                 return;
+             }
+            draw(e);
+        });
+
+        canvas.addEventListener('mouseup', (e) => {
+             if (isPanning) {
+                 isPanning = false;
+                 canvas.style.cursor = activeTool === 'image' && uploadedImage ? 'move' : 'crosshair'; // Restore cursor
+                 return; // Don't stop drawing if panning stopped
+             }
+             // Only stop drawing with left mouse button (button 0)
+             if (e.button === 0) {
+                stopDrawing(e);
+             }
+        });
+
+        // Prevent default behavior for middle mouse button (e.g., scrolling)
+         canvas.addEventListener('contextmenu', (e) => {
+             if (isPanning) {
+                 e.preventDefault();
+             }
+         });
+
+
+        // Touch events
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault(); // Prevent scrolling and other default touch behaviors
+            if (e.touches.length === 1) { // Only handle single touch for drawing/tools
+                 // Simulate mousedown for touch
+                const touch = e.touches[0];
+                const simulatedEvent = new MouseEvent('mousedown', {
+                    clientX: touch.clientX,
+                    clientY: touch.clientY,
+                    button: 0, // Simulate left click
+                    bubbles: true,
+                    cancelable: true
+                });
+                canvas.dispatchEvent(simulatedEvent);
+            }
+        }, { passive: false }); // Use passive: false to allow preventDefault
+
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault(); // Prevent scrolling
+             if (e.touches.length === 1) { // Only handle single touch for drawing/tools
+                 // Simulate mousemove for touch
+                const touch = e.touches[0];
+                const simulatedEvent = new MouseEvent('mousemove', {
+                    clientX: touch.clientX,
+                    clientY: touch.clientY,
+                    bubbles: true,
+                    cancelable: true
+                });
+                canvas.dispatchEvent(simulatedEvent);
+            }
+        }, { passive: false }); // Use passive: false to allow preventDefault
+
+        canvas.addEventListener('touchend', (e) => {
+            e.preventDefault(); // Prevent default touch behaviors
+             // Simulate mouseup for touch (only if a touch started the drawing or dragging)
+             if (isDrawing || isDraggingImage) { // Check if a drawing or dragging action was active
+                 const simulatedEvent = new MouseEvent('mouseup', {
+                     clientX: e.changedTouches[0].clientX, // Use changedTouches for touchend
+                     clientY: e.changedTouches[0].clientY, // Use changedTouches for touchend
+                     button: 0, // Simulate left click
+                     bubbles: true,
+                     cancelable: true
+                 });
+                 canvas.dispatchEvent(simulatedEvent);
+             }
+        }, { passive: false }); // Use passive: false to allow preventDefault
+
+
+        // Click event for fill and text tools (only trigger on click, not drag)
+        canvas.addEventListener('click', (e) => {
+             // Only trigger click logic if not currently drawing or dragging an image
+             if (!isDrawing && !isDraggingImage) {
+                 handleCanvasClick(e);
+             }
+        });
+
+
+        // Handle Shift key for temporary tool switching (e.g., draw to erase)
+        document.addEventListener('keydown', (e) => {
+             if (e.key === 'Shift' && !e.repeat) { // Check for Shift key down, ignore key repeat
+                 toolBeforeShift = currentTool; // Store the current tool
+                 if (currentTool === 'draw' || currentTool === 'pixel') {
+                     activeTool = isPixelMode ? 'pixelErase' : 'erase'; // Switch to erase (pixel or regular)
+                 } else if (currentTool === 'erase' || currentTool === 'pixelErase') {
+                     activeTool = isPixelMode ? 'pixel' : 'draw'; // Switch to draw (pixel or regular)
+                 }
+                 // Add other tool switches if needed (e.g., Shift+Line -> Eraser)
+                 updateToolButtonStyles(); // Update cursor and button styles
+             }
+        });
+
+        document.addEventListener('keyup', (e) => {
+             if (e.key === 'Shift') { // Check for Shift key up
+                 activeTool = currentTool; // Revert to the original tool
+                 updateToolButtonStyles(); // Update cursor and button styles
+             }
+        });
+
+
+        // --- Canvas Resizing ---
+
+        // Function to resize the canvas based on container size
+        function resizeCanvas() {
+            const containerWidth = canvasContainer.clientWidth;
+            const containerHeight = canvasContainer.clientHeight;
+
+            // Set canvas dimensions
+            canvas.width = containerWidth;
+            canvas.height = containerHeight;
+
+            console.log(`Canvas resized to: ${canvas.width}x${canvas.height}`);
+
+            // Redraw the canvas content after resizing
+            redrawCanvas();
+
+             // Save the new canvas size as the initial state if history is empty
+             if (history.length === 0) {
+                 setCanvasBackground();
+                 saveState();
+             } else {
+                 // If history exists, save the state after resizing and redrawing
+                 // This ensures the current drawing is preserved at the new size
+                 saveState();
+             }
+        }
+
+        // Resize the canvas when the window is resized
+        window.addEventListener('resize', resizeCanvas);
+
+
+        // --- Initial Setup ---
+
+        // Set initial canvas size and background
+        resizeCanvas();
+
+        // Apply saved theme on load
+        if (currentTheme === 'dark') {
+            body.classList.add('dark-mode');
+            darkModeToggle.textContent = `🌙 Donker`;
+        } else {
+             body.classList.remove('dark-mode');
+             darkModeToggle.textContent = `☀️ Licht (Klik ${lightModeClickCount}/${clicksToLightMode})`;
+        }
+
+
+        // Initial save of the empty canvas state
+        if (history.length === 0) {
+             setCanvasBackground(); // Ensure canvas is white initially
+             saveState();
+        }
+
+        // Update initial button states
+        updateHistoryButtons();
+        updateToolButtonStyles(); // Set initial tool button style and cursor
+
 
     </script>
-
 </body>
 </html>
