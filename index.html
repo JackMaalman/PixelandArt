@@ -377,6 +377,14 @@
              background-color: var(--button-hover-bg);
          }
 
+         /* Style for the refresh icon within the save button */
+         #colorPalette #saveColorBtn svg {
+             width: 1.25rem; /* Icon size */
+             height: 1.25rem; /* Icon size */
+             fill: currentColor; /* Use button text color for icon */
+         }
+
+
         #savedColorsContainer {
             display: flex;
             flex-direction: column;
@@ -437,7 +445,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 </head>
 <body class="relative">
-    <div id="versionInfo">v0.9.7 beta</div>
+    <div id="versionInfo">v0.9.1 beta</div>
     <button id="openMenuBtn" class="px-3 py-1.5 rounded-md hover:bg-gray-300 transition duration-150 text-sm font-medium">
         Settings
     </button>
@@ -650,7 +658,7 @@
 
         // Saved Colors Array and Limit
         let savedColors = JSON.parse(localStorage.getItem('savedColors')) || [];
-        const maxSavedColors = 10;
+        const maxSavedColors = 15; // Increased limit to 15
 
 
         // --- Helper Functions ---
@@ -1316,13 +1324,20 @@
              // Add the save button back after the colors
              savedColorsContainer.appendChild(saveColorBtn);
 
-             // Update save button state based on limit
+             // Update save button state based on limit and set content
              if (savedColors.length >= maxSavedColors) {
-                 saveColorBtn.disabled = true;
-                 saveColorBtn.textContent = 'Full';
+                 saveColorBtn.disabled = false; // Button is enabled for reset
+                 // Set button content to a refresh icon
+                 saveColorBtn.innerHTML = `
+                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                         <path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9c0-1.09-.19-2.14-.52-3.11l1.49-1.49c.74 1.24 1.18 2.65 1.18 4.6s-.44 3.36-1.18 4.6l1.49 1.49c1.24-1.24 1.92-2.92 1.92-4.6s-.68-3.36-1.92-4.6l-1.49 1.49c.33.97.52 2.02.52 3.11 0 3.86-3.14 7-7 7s-7-3.14-7-7 3.14-7 7-7c1.09 0 2.14.19 3.11.52l1.49-1.49c-1.24-.74-2.65-1.18-4.6-1.18s-3.36.44-4.6 1.18l-1.49-1.49c1.24-1.24 2.92-1.92 4.6-1.92s3.36.68 4.6 1.92l-1.49 1.49c-.97-.33-2.02-.52-3.11-.52z"/>
+                     </svg>
+                 `;
+                 saveColorBtn.title = 'Reset Saved Colors'; // Add a tooltip
              } else {
                  saveColorBtn.disabled = false;
-                 saveColorBtn.textContent = '+';
+                 saveColorBtn.textContent = '+'; // Set button content to plus sign
+                 saveColorBtn.title = 'Save Current Color'; // Add a tooltip
              }
         }
 
@@ -1353,6 +1368,14 @@
                  renderSavedColors(); // Re-render the palette
                  showMessage(`Kleur ${removedColor} verwijderd.`);
              }
+         }
+
+         // Resets the saved colors list
+         function resetSavedColors() {
+             savedColors = []; // Clear the array
+             localStorage.removeItem('savedColors'); // Remove from local storage
+             renderSavedColors(); // Re-render the palette
+             showMessage("Opgeslagen kleuren gereset.");
          }
 
 
@@ -1584,8 +1607,16 @@
              savedFont = e.target.value;
          });
 
-        // Save current color to palette button
-        saveColorBtn.addEventListener('click', addSavedColor);
+        // Modified Save/Reset button logic
+        saveColorBtn.addEventListener('click', () => {
+            if (savedColors.length >= maxSavedColors) {
+                // If palette is full, reset colors
+                resetSavedColors();
+            } else {
+                // Otherwise, add the current color
+                addSavedColor();
+            }
+        });
 
 
         // --- Canvas Event Listeners ---
