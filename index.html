@@ -445,7 +445,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 </head>
 <body class="relative">
-    <div id="versionInfo">v0.9.1 beta</div>
+    <div id="versionInfo">v0.9.7 beta</div>
     <button id="openMenuBtn" class="px-3 py-1.5 rounded-md hover:bg-gray-300 transition duration-150 text-sm font-medium">
         Settings
     </button>
@@ -1746,6 +1746,16 @@
                       activeTool = currentTool; // Revert to the original tool
                       updateToolButtonStyles(); // Update cursor and button styles
                  }
+             }
+        });
+
+        // Close side menu when clicking outside of it
+        document.addEventListener('click', (event) => {
+             // Check if the side menu is open and the click is outside the menu and not on the open button
+             if (sideMenu.classList.contains('open') &&
+                 !sideMenu.contains(event.target) &&
+                 event.target !== openMenuBtn) {
+                 sideMenu.classList.remove('open');
              }
         });
 
