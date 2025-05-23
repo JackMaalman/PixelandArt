@@ -1,0 +1,3055 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pixel & Art</title>
+    <link rel="icon" type="image/x-icon" href="logo.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Base styles and Inter font */
+        :root {
+            --bg-color: #f3f4f6; /* gray-100 */
+            --text-color: #1f2937; /* gray-800 */
+            --toolbar-bg: #ffffff; /* white */
+            --toolbar-text: #4b5563; /* gray-600 */
+            --canvas-bg: #ffffff; /* white - Canvas background always white */
+            --canvas-border: #cccccc; /* light gray */
+            --button-bg: #e5e7eb; /* gray-200 */
+            --button-text: #1f2937; /* gray-800 */
+            --button-hover-bg: #d1d5db; /* gray-300 */
+            --active-tool-bg: #d1d5db; /* gray-300 */
+            --message-bg: rgba(0, 0, 0, 0.7);
+            --message-text: white;
+            --sidemenu-bg: #ffffff; /* white */
+            --sidemenu-border: #cccccc; /* light gray */
+            --modal-bg: #ffffff; /* white */
+            --modal-border: #cccccc; /* light gray */
+            --modal-text: #1f2937; /* gray-800 */
+            --palette-bg: #ffffff; /* white */
+            --palette-border: #cccccc; /* light gray */
+
+            /* New Home/Config Screen Colors */
+            --overlay-bg: rgba(0, 0, 0, 0.8); /* Semi-transparent dark overlay */
+            --overlay-text: #ffffff; /* White text on overlay */
+            --overlay-button-bg: #F781FB; /* Changed from Indigo-500 to purple */
+            --overlay-button-text: #ffffff; /* White text on buttons */
+            --overlay-button-hover-bg: #DC64E1; /* Changed from Indigo-600 to darker purple */
+            --overlay-input-bg: #ffffff; /* White input background */
+            --overlay-input-text: #1f2937; /* Dark text in input */
+            --overlay-input-border: #cccccc; /* Light grey input border */
+
+            /* Gemini specific colors */
+            --gemini-primary: #F781FB; /* Bright pink/purple */
+            --gemini-secondary: #FFD700; /* Bright yellow for star/plus */
+            --gemini-gradient-start: #F781FB;
+            --gemini-gradient-end: #FFC0CB; /* Lighter pink for gradient */
+        }
+
+        body.dark-mode {
+            --bg-color: #1f2937; /* gray-800 */
+            --text-color: #f3f4f6; /* gray-100 */
+            --toolbar-bg: #374151; /* gray-700 */
+            --toolbar-text: #d1d5db; /* gray-300 */
+            /* --canvas-bg is intentionally NOT changed here to keep it white */
+            --canvas-border: #6b7280; /* gray-500 - Canvas border changes */
+            --button-bg: #4b5563; /* gray-600 */
+            --button-text: #f3f4f6; /* gray-100 */
+            --button-hover-bg: #6b7280; /* gray-500 */
+            --active-tool-bg: #6b7280; /* gray-500 */
+            --message-bg: rgba(255, 255, 255, 0.7);
+            --message-text: black;
+            --sidemenu-bg: #374151; /* gray-700 */
+            --sidemenu-border: #6b7280; /* gray-500 */
+            --modal-bg: #374151; /* gray-700 */
+            --modal-border: #6b7280; /* gray-500 */
+            --modal-text: #f3f4f6; /* gray-100 */
+            --palette-bg: #374151; /* gray-700 */
+            --palette-border: #6b7280; /* gray-500 */
+
+             /* Dark Mode Home/Config Screen Colors */
+             --overlay-bg: rgba(31, 41, 55, 0.9); /* Semi-transparent dark grey overlay */
+             --overlay-text: #f3f4f6; /* Light text on overlay */
+             --overlay-button-bg: #F781FB; /* Changed from Indigo-500 to purple */
+             --overlay-button-text: #f3f4f6; /* Light text on buttons */
+             --overlay-button-hover-bg: #DC64E1; /* Changed from Indigo-600 to darker purple */
+             --overlay-input-bg: #4b5563; /* Dark grey input background */
+             --overlay-input-text: #f3f4f6; /* Light text in input */
+             --overlay-input-border: #6b7280; /* Medium grey input border */
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: background-color 0.3s ease, color 0.3s ease;
+            overflow: hidden; /* Prevent body scrollbars */
+            display: flex; /* Use flexbox for main layout */
+            flex-direction: row; /* Arrange children in a row */
+            align-items: flex-start; /* Align items to the top */
+            justify-content: center; /* Center content horizontally */
+            min-height: 100vh;
+            padding: 1rem; /* Add some padding around the content */
+        }
+
+        h1 {
+             color: var(--text-color);
+             flex-shrink: 0; /* Prevent shrinking */
+        }
+
+        .main-content {
+             display: flex;
+             flex-direction: column;
+             align-items: center;
+             flex-grow: 1; /* Allow main content to grow horizontally */
+             /* Adjusted: Make max-width smaller */
+             max-width: 900px; /* E.g. 900px, was 4xl (approx. 896px) */
+             margin-left: 1rem; /* Add some space between palette and main content */
+             margin-right: 1rem; /* Add some space to the right */
+             height: calc(100vh - 2rem); /* Let main content take full available vertical space */
+             /* Initially hidden */
+             display: none;
+        }
+
+
+        .toolbar {
+            background-color: var(--toolbar-bg);
+            transition: background-color 0.3s ease;
+            flex-shrink: 0; /* Prevent toolbar from shrinking */
+            width: 100%; /* Fill parent width */
+            /* Adjusted: Match main-content's max-width */
+            max-width: 900px;
+        }
+
+        .toolbar label, .toolbar span {
+             color: var(--toolbar-text);
+        }
+
+        /* Ensure the canvas has a clear border */
+        canvas {
+            border: 1px solid var(--canvas-border);
+            background-color: var(--canvas-bg); /* Uses the --canvas-bg variable */
+            cursor: crosshair; /* Change cursor to crosshair over canvas */
+            touch-action: none; /* Prevent scrolling on touch devices while drawing */
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+            display: block; /* Prevent extra space below canvas */
+            max-width: 100%; /* Ensure canvas does not overflow container width */
+            /* flex-grow: 1;  Flex-grow removed from canvas itself */
+            /* Adjusted: Canvas takes full width of container, height is calculated in JS */
+            width: 100%;
+            /* height: 100%; Fixed height removed */
+        }
+
+        /* Style for the active tool */
+        .tool-active {
+            background-color: var(--active-tool-bg) !important; /* Override Tailwind */
+            border: 2px solid var(--text-color); /* Extra indication */
+        }
+
+        /* Style for buttons */
+         .toolbar button {
+            background-color: var(--button-bg);
+            color: var(--button-text);
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+            border: 2px solid transparent; /* Space for active border */
+            /* Added styles for smaller buttons */
+            padding: 0.5rem 0.75rem; /* Smaller padding */
+            display: inline-flex; /* Allow flexbox for icon centering */
+            align-items: center;
+            justify-content: center;
+         }
+         .toolbar button:hover {
+             background-color: var(--button-hover-bg);
+         }
+         #clearBtn {
+             background-color: #ef4444; /* red-500 */
+             color: white;
+         }
+         #clearBtn:hover {
+             background-color: #dc2626; /* red-600 */
+         }
+         body.dark-mode #clearBtn {
+             background-color: #ef4444; /* red-500 */
+             color: white;
+         }
+         body.dark-mode #clearBtn:hover {
+             background-color: #dc2626; /* red-600 */
+         }
+
+         /* Style for disabled buttons */
+         .toolbar button:disabled {
+             opacity: 0.5;
+             cursor: not-allowed;
+         }
+
+         /* Style for SVG icons within buttons */
+         .toolbar button svg {
+             width: 1.25rem; /* Icon size */
+             height: 1.25rem; /* Icon size */
+             fill: currentColor; /* Use button text color for icon */
+         }
+
+         /* Style for the side menu */
+         #sideMenu {
+             position: fixed;
+             top: 0;
+             right: -300px; /* Start outside the screen */
+             width: 300px;
+             height: 100%;
+             background-color: var(--sidemenu-bg);
+             border-left: 1px solid var(--sidemenu-border);
+             box-shadow: -2px 0 5px rgba(0,0,0,0.5);
+             transition: right 0.3s ease;
+             z-index: 1001; /* Higher than message box */
+             padding: 20px;
+             display: flex;
+             flex-direction: column;
+         }
+
+         #sideMenu.open {
+             right: 0; /* Slide in */
+         }
+
+         #sideMenu .close-btn {
+             align-self: flex-end; /* Align right */
+             background: none;
+             border: none;
+             font-size: 1.5rem;
+             cursor: pointer;
+             color: var(--text-color); /* Use main text color */
+             margin-bottom: 20px;
+         }
+
+         #sideMenu button {
+             width: 100%; /* Make buttons fill menu width */
+             justify-content: flex-start; /* Align text/icon left */
+             margin-bottom: 10px; /* Add some space between menu buttons */
+         }
+
+         /* Style for the text input modal */
+         #textInputModal, #imageGenerationModal, #backgroundSelectionModal {
+             position: fixed;
+             top: 50%;
+             left: 50%;
+             transform: translate(-50%, -50%);
+             background-color: var(--modal-bg);
+             border: 1px solid var(--modal-border);
+             border-radius: 8px;
+             padding: 20px;
+             box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+             z-index: 1002; /* Higher than side menu */
+             display: none; /* Hidden by default */
+             flex-direction: column;
+             gap: 15px;
+             color: var(--modal-text);
+             width: 90%; /* Responsive width */
+             max-width: 500px; /* Max width for larger screens */
+         }
+
+         #textInputModal.visible, #imageGenerationModal.visible, #backgroundSelectionModal.visible {
+             display: flex;
+         }
+
+         #textInputModal textarea, #imageGenerationModal textarea, #imageGenerationModal input[type="text"],
+         #backgroundSelectionModal input[type="text"] {
+             width: 100%;
+             padding: 10px;
+             border: 1px solid var(--modal-border);
+             border-radius: 4px;
+             background-color: var(--bg-color); /* Use general background for input */
+             color: var(--text-color); /* Use general text color for input */
+             resize: vertical; /* Allow vertical resizing */
+         }
+
+         #textInputModal .modal-setting {
+             display: flex;
+             align-items: center;
+             gap: 10px;
+         }
+
+         #textInputModal select,
+         #textInputModal input[type="range"] {
+             padding: 8px;
+             border: 1px solid var(--modal-border);
+             border-radius: 4px;
+             background-color: var(--bg-color); /* Use general background for select/range */
+             color: var(--text-color); /* Use general text color for select/range */
+         }
+
+         #textInputModal input[type="range"] {
+             flex-grow: 1; /* Allow slider to take available space */
+             /* Add accent-color for slider thumb and track fill */
+             accent-color: var(--overlay-button-bg); /* Use the purple color */
+         }
+
+
+         #textInputModal .modal-buttons, #imageGenerationModal .modal-buttons, #backgroundSelectionModal .modal-buttons {
+             display: flex;
+             justify-content: flex-end;
+             gap: 10px;
+         }
+
+         #textInputModal .modal-buttons button, #imageGenerationModal .modal-buttons button, #backgroundSelectionModal .modal-buttons button {
+             padding: 8px 15px;
+             border-radius: 4px;
+             cursor: pointer;
+             /* Use general button styles */
+             background-color: var(--button-bg);
+             color: var(--button-text);
+             transition: background-color 0.15s ease;
+         }
+         #textInputModal .modal-buttons button:hover, #imageGenerationModal .modal-buttons button:hover, #backgroundSelectionModal .modal-buttons button:hover {
+             background-color: var(--button-hover-bg);
+         }
+
+
+         /* Style for the message box */
+         #messageBox {
+             position: fixed;
+             top: 20px;
+             left: 50%;
+             transform: translateX(-50%);
+             background-color: var(--message-bg);
+             color: var(--message-text);
+             padding: 10px 20px;
+             border-radius: 8px;
+             display: none; /* Hidden by default */
+             z-index: 1000;
+             transition: background-color 0.3s ease, color 0.3s ease;
+         }
+
+         /* Style for the version indicator */
+         #versionInfo {
+             position: absolute;
+             top: 10px;
+             right: 10px;
+             font-size: 0.8rem;
+             color: var(--text-color);
+             opacity: 0.7; /* Make it slightly less prominent */
+         }
+
+        /* Style for the Settings button in the top right corner */
+        #openMenuBtn {
+            position: absolute;
+            top: 40px; /* Distance from top (below version info) */
+            right: 10px; /* Distance from right */
+            z-index: 999; /* Ensure it's above most elements */
+            /* Keep existing button styles */
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.375rem; /* rounded-md */
+            background-color: var(--button-bg);
+            color: var(--button-text);
+            transition: background-color 0.15s ease;
+            border: 2px solid transparent;
+            /* Initially hidden */
+            display: none;
+        }
+        #openMenuBtn:hover {
+            background-color: var(--button-hover-bg);
+        }
+
+        /* New styles for the color palette */
+        #colorPalette {
+            /* Adjusted: Make palette width slightly narrower */
+            width: 100px; /* Fixed width */
+            background-color: var(--palette-bg);
+            border: 1px solid var(--palette-border);
+            border-radius: 8px;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex-shrink: 0; /* Prevent palette from shrinking */
+            align-self: flex-start; /* Align to the top */
+            min-height: 200px; /* Minimum height */
+            /* flex-grow is removed here to prevent it from taking all vertical space */
+            /* Removed position: sticky and top */
+             /* Initially hidden */
+             display: none;
+        }
+
+        #colorPalette h2 {
+            font-size: 1rem; /* text-base */
+            font-weight: bold; /* font-bold */
+            margin-bottom: 1rem;
+            color: var(--text-color); /* Use main text color */
+        }
+
+        #colorPalette .color-input-group {
+            margin-bottom: 1rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #colorPalette .color-input-group label {
+             display: none; /* This label is removed from HTML */
+        }
+
+        #colorPalette #colorPicker {
+            height: 2.5rem; /* h-10 */
+            width: 2.5rem; /* w-10 */
+            padding: 0.25rem; /* p-1 */
+            border: 1px solid var(--palette-border);
+            border-radius: 0.375rem; /* rounded-md */
+            cursor: pointer;
+        }
+
+        #colorPalette #saveColorBtn {
+            background-color: var(--button-bg);
+            color: var(--button-text);
+            border: none;
+            border-radius: 50%; /* Make it round */
+            width: 2.5rem; /* Fixed size */
+            height: 2.5rem; /* Fixed size */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem; /* Larger plus sign */
+            cursor: pointer;
+            margin-top: 0.5rem; /* Space above the plus sign */
+            transition: background-color 0.15s ease;
+        }
+
+         #colorPalette #saveColorBtn:hover {
+             background-color: var(--button-hover-bg);
+         }
+
+         /* Style for the refresh icon within the save button */
+         #colorPalette #saveColorBtn svg {
+             width: 1.25rem; /* Icon size */
+             height: 1.25rem; /* Icon size */
+             fill: currentColor; /* Use button text color for icon */
+         }
+
+
+        #savedColorsContainer {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 1rem;
+            width: 100%; /* Fill palette width */
+             overflow-y: auto; /* Add scrolling if more than 10 colors */
+             flex-grow: 1; /* Allow container to grow to fill available space */
+        }
+
+        .saved-color-circle {
+            width: 2rem; /* Size of the color circle */
+            height: 2rem; /* Size of the color circle */
+            border-radius: 50%; /* Make it round */
+            margin-bottom: 0.5rem; /* Space between circles */
+            cursor: pointer;
+            border: 2px solid transparent; /* Space for active border */
+            transition: border-color 0.15s ease;
+        }
+
+        .saved-color-circle:hover {
+             border-color: var(--text-color); /* Border on hover */
+        }
+
+         .saved-color-circle.active {
+             border-color: var(--text-color); /* Border on active color */
+         }
+
+         /* Ensure canvas container takes remaining vertical space in main-content */
+         .canvas-container {
+             flex-grow: 1;
+             width: 100%; /* Ensure it takes full width of main-content */
+             display: flex; /* Use flex to center canvas */
+             justify-content: center;
+             align-items: center;
+             margin-bottom: 0; /* Removed bottom margin */
+             overflow: hidden; /* Prevent overflow issues */
+         }
+
+        /* Canvas styles are now handled by the JS resizeCanvas function for 16:9 ratio */
+
+        /* Added style for the footer text */
+        .footer-text {
+            text-align: center; /* Center the text */
+            margin-top: 1rem; /* Add some space above the text */
+            font-size: 0.75rem; /* text-xs */
+            color: #6b7280; /* gray-500 - A medium grey color */
+        }
+         body.dark-mode .footer-text {
+             color: #9ca3af; /* gray-400 - A lighter grey for dark mode */
+         }
+
+        /* --- New Styles for Home and Config Screens --- */
+        .overlay-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--overlay-bg);
+            color: var(--overlay-text);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000; /* Ensure it's on top of everything */
+             /* Background image for home screen */
+             background-image: url('drawing.png'); /* Check if 'drawing.png' is in the same folder as this HTML file */
+             background-size: cover;
+             background-position: center;
+             background-repeat: no-repeat;
+             /* Fallback background color - shown if image is not found */
+             background-color: #F781FB; /* Changed from blue-600 to purple */
+        }
+
+        .overlay-content {
+            background-color: rgba(255, 255, 255, 0.1); /* Slightly visible background for content area */
+            padding: 2rem;
+            border-radius: 10px;
+            text-align: center;
+            max-width: 90%; /* Limit width on smaller screens */
+             display: flex; /* Use flexbox for content layout */
+             flex-direction: column; /* Stack content vertically */
+             align-items: center; /* Center content horizontally */
+        }
+
+        /* New style for the button container on the home screen */
+        .home-buttons-container {
+            display: flex;
+            flex-direction: column; /* Stack buttons vertically */
+            align-items: center; /* Center buttons horizontally within their container */
+            margin-top: 1.5rem; /* Add some space below the title */
+        }
+
+
+        .overlay-button {
+            background-color: var(--overlay-button-bg);
+            color: var(--overlay-button-text);
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.375rem; /* rounded-md */
+            font-size: 1.125rem; /* text-lg */
+            font-weight: bold;
+            margin: 0.5rem 0; /* Space between buttons (vertical) */
+            width: 200px; /* Fixed width for buttons */
+            transition: background-color 0.2s ease;
+            cursor: pointer;
+        }
+
+        .overlay-button:hover {
+            background-color: var(--overlay-button-hover-bg);
+        }
+
+        #configScreen {
+            display: none; /* Initially hidden */
+        }
+
+        #configScreen .config-option {
+            margin-bottom: 1rem;
+            text-align: left; /* Align options left */
+            width: 100%; /* Ensure options take full width of content area */
+        }
+
+        #configScreen label {
+            display: block; /* Make labels block elements */
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+        }
+
+        #configScreen input[type="radio"] {
+             margin-right: 0.5rem;
+        }
+
+        #configScreen input[type="text"] {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid var(--overlay-input-border);
+            border-radius: 4px;
+            background-color: var(--overlay-input-bg);
+            color: var(--overlay-input-text);
+        }
+
+        #configScreen .config-buttons {
+            margin-top: 1.5rem;
+        }
+
+        /* For modal buttons that are currently indigo */
+        #llmResponseModal #closeLlmResponseModalBtn,
+        #imageGenerationModal #generateImageApiBtn,
+        #textInputModal #generateTextApiBtn { /* Added for text generation button */
+            background-color: var(--gemini-primary); /* Your new purple color */
+            color: white; /* Ensure text color is white */
+        }
+
+        #llmResponseModal #closeLlmResponseModalBtn:hover,
+        #imageGenerationModal #generateImageApiBtn:hover,
+        #textInputModal #generateTextApiBtn:hover { /* Added for text generation button */
+            background-color: #DC64E1; /* Darker shade for hover */
+        }
+
+        /* Styles for the Gemini 'plus' star icon */
+        .gemini-star {
+            width: 24px;
+            height: 24px;
+            background-color: transparent; /* Changed to transparent */
+            position: relative;
+            display: inline-block; /* Ensure it respects margins/padding */
+            vertical-align: middle; /* Align with text */
+            margin-right: 8px; /* Space between star and text */
+        }
+
+        .gemini-star::before,
+        .gemini-star::after {
+            content: '';
+            position: absolute;
+            background-color: var(--gemini-secondary); /* Bright yellow */
+            border-radius: 4px; /* Rounded corners */
+        }
+
+        .gemini-star::before {
+            width: 100%;
+            height: 4px; /* Thickness of the horizontal bar - Changed to 4px */
+            top: 50%;
+            left: 0;
+            transform: translateY(-50%);
+        }
+
+        .gemini-star::after {
+            width: 4px; /* Thickness of the vertical bar - Changed to 4px */
+            height: 100%;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        /* Animation for the spinning star */
+        .gemini-star.spinning {
+            animation: starSpin 2s linear infinite;
+        }
+
+        @keyframes starSpin {
+            0% { transform: rotate(0deg); } /* Start from 0deg */
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Animation for other AI elements (e.g., loading states, buttons) */
+        .ai-animation-bg {
+            background-color: var(--gemini-primary); /* Bright pink/purple */
+            animation: pulseBg 1.5s infinite alternate;
+        }
+
+        @keyframes pulseBg {
+            0% { background-color: var(--gemini-primary); }
+            100% { background-color: #DC64E1; } /* Slightly darker pink/purple */
+        }
+
+        /* Style for generated image preview */
+        #generatedImagePreview {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin-top: 15px;
+            border: 1px solid var(--modal-border);
+        }
+
+        #imageGenerationModal .modal-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: linear-gradient(135deg, var(--gemini-gradient-start), var(--gemini-gradient-end)); /* Gradient background */
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        #imageGenerationModal .modal-buttons {
+            margin-top: 20px;
+        }
+
+        /* Styles for Background Selection Modal */
+        #backgroundSelectionModal .background-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+            max-height: 300px; /* Limit height for scrolling */
+            overflow-y: auto;
+            padding-right: 5px; /* Space for scrollbar */
+        }
+
+        #backgroundSelectionModal .background-option {
+            border: 2px solid var(--modal-border);
+            border-radius: 8px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: border-color 0.2s ease, transform 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 5px;
+            position: relative; /* For checkmark positioning */
+        }
+
+        #backgroundSelectionModal .background-option:hover {
+            border-color: var(--gemini-primary);
+            transform: translateY(-2px);
+        }
+
+        #backgroundSelectionModal .background-option.active {
+            border-color: var(--gemini-primary);
+            box-shadow: 0 0 0 3px rgba(247, 129, 251, 0.5); /* Highlight active selection */
+        }
+
+        #backgroundSelectionModal .background-option img {
+            width: 100%;
+            height: 70px; /* Fixed height for consistent previews */
+            object-fit: cover; /* Cover the area, crop if needed */
+            border-radius: 4px;
+            margin-bottom: 5px;
+        }
+
+        #backgroundSelectionModal .background-option span {
+            font-size: 0.8rem;
+            color: var(--modal-text);
+        }
+
+        #backgroundSelectionModal .upload-section {
+            margin-top: 20px;
+            border-top: 1px solid var(--modal-border);
+            padding-top: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        #backgroundSelectionModal .upload-section label {
+            font-weight: bold;
+        }
+
+        #backgroundSelectionModal .upload-section input[type="file"] {
+            display: none; /* Hide default file input */
+        }
+
+        #backgroundSelectionModal .upload-button {
+            background-color: var(--button-bg);
+            color: var(--button-text);
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.15s ease;
+            display: inline-block; /* Allow padding and sizing */
+            text-align: center;
+        }
+        #backgroundSelectionModal .upload-button:hover {
+            background-color: var(--button-hover-bg);
+        }
+
+        /* Checkmark style */
+        .background-option .checkmark {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            font-size: 1.5rem;
+            color: #4CAF50; /* Green checkmark */
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+            display: none; /* Hidden by default */
+        }
+
+        .background-option.active .checkmark {
+            display: block; /* Show when active */
+        }
+
+    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+</head>
+<body class="relative">
+    <div id="versionInfo">v1.0.0</div>
+
+    <div id="homeScreen" class="overlay-screen">
+        <div class="overlay-content">
+            <h1 class="text-5xl font-bold mb-8" style="color: var(--overlay-text);">Pixel & Art</h1>
+            <div class="home-buttons-container">
+                <button id="newBtn" class="overlay-button">New</button>
+                <button id="creditsBtn" class="overlay-button">Credits</button>
+                <button id="aboutBtn" class="overlay-button">About</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="configScreen" class="overlay-screen">
+        <div class="overlay-content">
+            <h2 class="text-3xl font-bold mb-6" style="color: var(--overlay-text);">New Drawing Settings</h2>
+
+            <div class="config-option">
+                <label for="canvasBackground">Canvas Background:</label>
+                <div>
+                    <input type="radio" id="bgWhite" name="canvasBackground" value="white" checked>
+                    <label for="bgWhite">White</label>
+                </div>
+                <div>
+                    <input type="radio" id="bgTransparent" name="canvasBackground" value="transparent">
+                    <label for="bgTransparent">Transparent</label>
+                </div>
+            </div>
+
+            <div class="config-option">
+                <label for="fileNameInput">Filename for Export (.png):</label>
+                <input type="text" id="fileNameInput" placeholder="Enter filename" value="my_drawing">
+            </div>
+
+            <div class="config-buttons">
+                <button id="startDrawingBtn" class="overlay-button">Start Drawing</button>
+                <button id="uploadJsonBtn" class="overlay-button">Load Drawing (JSON)</button>
+                <button id="backToHomeFromConfigBtn" class="overlay-button">Back</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="creditsScreen" class="overlay-screen" style="display: none;">
+        <div class="overlay-content">
+            <h2 class="text-3xl font-bold mb-6" style="color: var(--overlay-text);">Credits</h2>
+            <p class="text-lg mb-2">Created by:</p>
+            <p class="text-xl font-semibold mb-1">Magicum CEO: Jack Maalman / Renske Krom</p>
+            <p class="text-xl font-semibold mb-1">Lead Developer: Jack Maalman</p>
+            <p class="text-xl font-semibold mb-4">Marketing/Artist: Pieter Dupon</p>
+            <p class="text-sm italic mb-6">AI Functions powered by Gemini</p>
+            <button id="backToHomeFromCreditsBtn" class="overlay-button">Back to Home</button>
+        </div>
+    </div>
+
+
+    <button id="openMenuBtn" class="px-3 py-1.5 rounded-md hover:bg-gray-300 transition duration-150 text-sm font-medium">
+        Settings
+    </button>
+
+    <div id="colorPalette">
+        <h2>Colors</h2>
+        <div class="color-input-group">
+            <input type="color" id="colorPicker" value="#000000">
+        </div>
+        <button id="saveColorBtn">+</button>
+        <div id="savedColorsContainer">
+            </div>
+    </div>
+
+    <div class="main-content">
+        <h1 class="text-3xl font-bold mb-4">Pixel & Art</h1>
+
+        <div class="toolbar w-full p-3 rounded-lg shadow-md mb-4 flex flex-wrap items-center justify-center gap-3">
+            <div>
+                <label for="brushSize" class="mr-1 text-sm font-medium">Size:</label>
+                <input type="range" id="brushSize" min="1" max="50" value="5" class="cursor-pointer align-middle w-24">
+                <span id="brushSizeValue" class="ml-1 text-sm w-6 inline-block text-center">5</span>
+            </div>
+
+            <button id="drawBtn" class="px-3 py-1.5 rounded-md hover:bg-gray-300 transition duration-150 text-sm font-medium tool-active">
+                Draw
+            </button>
+
+            <button id="eraserBtn" class="px-3 py-1.5 rounded-md hover:bg-gray-300 transition duration-150 text-sm font-medium">
+                Eraser
+            </button>
+
+            <button id="fillBtn" class="px-3 py-1.5 rounded-md hover:bg-gray-300 transition duration-150 text-sm font-medium">
+                Fill
+            </button>
+
+             <button id="textBtn" class="px-3 py-1.5 rounded-md hover:bg-gray-300 transition duration-150 text-sm font-medium">
+                 Text
+             </button>
+
+             <button id="lineBtn" class="px-3 py-1.5 rounded-md hover:bg-gray-300 transition duration-150 text-sm font-medium">
+                 Line
+             </button>
+
+             <input type="file" id="imageUpload" accept=".png, .jpg, .jpeg, .webp" class="hidden">
+            <button id="uploadImageBtn" class="px-3 py-1.5 rounded-md hover:bg-gray-300 transition duration-150 text-sm font-medium">
+                Upload Image
+            </button>
+
+            <button id="undoBtn" class="rounded-md hover:bg-gray-300 transition duration-150 text-sm font-medium" disabled>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 10.38 17.15 8 12.5 8z"/>
+                </svg>
+            </button>
+
+            <button id="redoBtn" class="rounded-md hover:bg-gray-300 transition duration-150 text-sm font-medium" disabled>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M11.5 16c2.65 0-5.05-.99-6.9-2.6L22 17V8h-9l3.62 3.62c-1.39 1.16-3.16 1.88-5.12 1.88-3.54 0-6.55-2.31-7.6-5.5l-2.37.78C2.92 13.62 6.85 16 11.5 16z"/>
+                </svg>
+            </button>
+
+            <button id="clearBtn" class="px-3 py-1.5 text-white rounded-md transition duration-150 text-sm font-medium">
+                Clear
+            </button>
+        </div>
+
+        <div class="canvas-container">
+             <canvas id="drawingCanvas" class="rounded-lg shadow-md"></canvas>
+        </div>
+
+        <div class="footer-text">
+            Pixel & Art Magicum magical creation suite by Magicum Entertainment.
+        </div>
+    </div>
+
+
+    <div id="sideMenu">
+        <button class="close-btn">&times;</button>
+        <h2 class="text-xl font-bold mb-4">Settings</h2>
+        <button id="darkModeToggle" class="px-3 py-1.5 rounded-md hover:bg-gray-300 transition duration-150 text-sm font-medium">
+            ☀️ Light
+        </button>
+         <button id="pixelModeToggle" class="px-3 py-1.5 rounded-md hover:bg-gray-300 transition duration-150 text-sm font-medium">
+             Pixel Art Mode: Off
+         </button>
+         <button id="exportPngBtn" class="px-3 py-1.5 rounded-md hover:bg-gray-300 transition duration-150 text-sm font-medium">
+            Export as PNG
+        </button>
+        <button id="exportJsonBtn" class="px-3 py-1.5 rounded-md hover:bg-gray-300 transition duration-150 text-sm font-medium">
+            Export as JSON
+        </button>
+        <button id="showHomeBtn" class="px-3 py-1.5 rounded-md hover:bg-gray-300 transition duration-150 text-sm font-medium">
+             Show Home Screen
+         </button>
+         <button id="resetColorsBtn" class="px-3 py-1.5 rounded-md hover:bg-gray-300 transition duration-150 text-sm font-medium">
+             Reset Colors
+         </button>
+        <button id="generateImageBtn" class="px-3 py-1.5 rounded-md transition duration-150 text-sm font-medium ai-animation-bg">
+            <span class="ml-2">Generate Image</span>
+        </button>
+    </div>
+
+    <div id="textInputModal">
+        <h3 class="text-lg font-semibold">Add Text</h3>
+        <textarea id="textInput" rows="3" placeholder="Enter your text here or a prompt for AI generation..."></textarea> <div class="modal-setting">
+            <label for="fontSelect" class="mr-2 text-sm font-medium">Font:</label>
+            <select id="fontSelect">
+                <option value="Arial">Arial</option>
+                <option value="Verdana">Verdana</option>
+                <option value="Times New Roman">Times New Roman</option>
+                <option value="Courier New">Courier New</option>
+                <option value="Georgia">Georgia</option>
+                <option value="Press Start 2P">Press Start 2P</option>
+            </select>
+        </div>
+         <div class="modal-setting">
+             <label for="textSizeSlider" class="mr-2 text-sm font-medium">Text Size:</label>
+             <input type="range" id="textSizeSlider" min="10" max="100" value="20" class="cursor-pointer">
+             <span id="textSizeValue" class="ml-1 text-sm w-8 inline-block text-center">20</span>
+         </div>
+        <div class="modal-buttons">
+            <button id="cancelTextBtn">Cancel</button>
+            <button id="generateTextApiBtn" class="ai-animation-bg">
+                <div id="textGenerationLoadingStar" class="gemini-star" style="display: none;"></div>
+                <span class="button-text">Generate Text</span> </button>
+            <button id="addTextBtn">Add</button>
+        </div>
+    </div>
+
+    <div id="imageGenerationModal" class="modal">
+        <div class="modal-content">
+            <h3 class="text-lg font-semibold">Generate Image with AI</h3>
+            <textarea id="imagePromptInput" rows="4" placeholder="Describe the image you want to generate (e.g., 'a cat in space with a helmet')."></textarea>
+            <img id="generatedImagePreview" src="" alt="Generated Image Preview" style="display: none;">
+            <div class="modal-buttons">
+                <button id="closeImageGenerationModalBtn">Close</button>
+                <button id="generateImageApiBtn" class="ai-animation-bg">
+                    <div id="imageGenerationLoadingStar" class="gemini-star" style="display: none;"></div>
+                    <span class="button-text">Generate</span>
+                </button>
+                <button id="placeGeneratedImageBtn" style="display: none;">Place Image</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="backgroundSelectionModal" class="modal">
+        <div class="modal-content">
+            <h3 class="text-lg font-semibold">Choose Background</h3> <div class="background-options" id="standardBackgroundsContainer">
+                </div>
+            <div class="upload-section">
+                <label for="backgroundUpload">Or upload your own background:</label> <input type="file" id="backgroundUpload" accept=".png, .jpg, .jpeg, .webp">
+                <button id="uploadBackgroundBtn" class="upload-button">Upload Image</button> </div>
+            <div class="modal-buttons">
+                <button id="cancelBackgroundSelectionBtn">Cancel</button> <button id="clearBackgroundBtn">Clear Background</button> <button id="saveBackgroundBtn">Save</button> </div>
+        </div>
+    </div>
+
+    <div id="messageBox"></div>
+
+    <input type="file" id="jsonUploadInput" accept=".json" class="hidden">
+
+
+    <script>
+        const canvas = document.getElementById('drawingCanvas'); // The visible, composite canvas
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+
+        // New: Offscreen canvas for the base drawing layer
+        const baseDrawingCanvas = document.createElement('canvas');
+        const baseDrawingCtx = baseDrawingCanvas.getContext('2d', { willReadFrequently: true });
+
+        const colorPicker = document.getElementById('colorPicker');
+        const brushSizeSlider = document.getElementById('brushSize');
+        const brushSizeValue = document.getElementById('brushSizeValue');
+        const clearBtn = document.getElementById('clearBtn');
+        const eraserBtn = document.getElementById('eraserBtn');
+        const drawBtn = document.getElementById('drawBtn');
+        const fillBtn = document.getElementById('fillBtn');
+        const textBtn = document.getElementById('textBtn');
+        const lineBtn = document.getElementById('lineBtn');
+        const undoBtn = document.getElementById('undoBtn');
+        const redoBtn = document.getElementById('redoBtn');
+        const openMenuBtn = document.getElementById('openMenuBtn');
+        const sideMenu = document.getElementById('sideMenu');
+        const closeMenuBtn = sideMenu.querySelector('.close-btn');
+        const darkModeToggle = document.getElementById('darkModeToggle');
+        const exportPngBtn = document.getElementById('exportPngBtn');
+        const exportJsonBtn = document.getElementById('exportJsonBtn');
+        const messageBox = document.getElementById('messageBox');
+        const body = document.body;
+        const canvasContainer = document.querySelector('.canvas-container');
+
+        // Text Modal Elements
+        const textInputModal = document.getElementById('textInputModal');
+        const textInput = document.getElementById('textInput');
+        const fontSelect = document.getElementById('fontSelect');
+        const textSizeSlider = document.getElementById('textSizeSlider');
+        const textSizeValue = document.getElementById('textSizeValue');
+        const addTextBtn = document.getElementById('addTextBtn');
+        const cancelTextBtn = document.getElementById('cancelTextBtn');
+
+        // Gemini Text Generation Elements
+        const generateTextApiBtn = document.getElementById('generateTextApiBtn');
+        const textGenerationLoadingStar = document.getElementById('textGenerationLoadingStar');
+        const generateTextButtonText = generateTextApiBtn.querySelector('.button-text');
+
+        // Pixel Mode Toggle Button
+        const pixelModeToggle = document.getElementById('pixelModeToggle');
+
+        // Image Upload Elements
+        const imageUploadInput = document.getElementById('imageUpload');
+        const uploadImageBtn = document.getElementById('uploadImageBtn');
+
+        // Color Palette Elements
+        const colorPalette = document.getElementById('colorPalette');
+        const saveColorBtn = document.getElementById('saveColorBtn');
+        const savedColorsContainer = document.getElementById('savedColorsContainer');
+
+        // Home/Config Screen Elements
+        const homeScreen = document.getElementById('homeScreen');
+        const newBtn = document.getElementById('newBtn');
+        const uploadJsonBtn = document.getElementById('uploadJsonBtn');
+        const jsonUploadInput = document.getElementById('jsonUploadInput');
+        const creditsBtn = document.getElementById('creditsBtn');
+        const aboutBtn = document.getElementById('aboutBtn');
+        const configScreen = document.getElementById('configScreen');
+        const bgWhiteRadio = document.getElementById('bgWhite');
+        const bgTransparentRadio = document.getElementById('bgTransparent');
+        const fileNameInput = document.getElementById('fileNameInput');
+        const startDrawingBtn = document.getElementById('startDrawingBtn');
+        const mainContent = document.querySelector('.main-content');
+        const showHomeBtn = document.getElementById('showHomeBtn');
+        const backToHomeFromConfigBtn = document.getElementById('backToHomeFromConfigBtn');
+
+        // Credits Screen Elements
+        const creditsScreen = document.getElementById('creditsScreen');
+        const backToHomeFromCreditsBtn = document.getElementById('backToHomeFromCreditsBtn');
+
+        // Gemini Image Generation Elements
+        const generateImageBtn = document.getElementById('generateImageBtn');
+        const imageGenerationModal = document.getElementById('imageGenerationModal');
+        const imagePromptInput = document.getElementById('imagePromptInput');
+        const generateImageApiBtn = document.getElementById('generateImageApiBtn');
+        const generatedImagePreview = document.getElementById('generatedImagePreview');
+        const placeGeneratedImageBtn = document.getElementById('placeGeneratedImageBtn');
+        const closeImageGenerationModalBtn = document.getElementById('closeImageGenerationModalBtn');
+        const imageGenerationLoadingStar = document.getElementById('imageGenerationLoadingStar');
+        const generateImageButtonText = generateImageApiBtn.querySelector('.button-text');
+
+        let generatedImageData = null;
+
+        // Reset Colors Button
+        const resetColorsBtn = document.getElementById('resetColorsBtn');
+
+        // Background Selection Elements
+        const backgroundSelectionModal = document.getElementById('backgroundSelectionModal');
+        const standardBackgroundsContainer = document.getElementById('standardBackgroundsContainer');
+        const backgroundUploadInput = document.getElementById('backgroundUpload');
+        const uploadBackgroundBtn = document.getElementById('uploadBackgroundBtn');
+        const cancelBackgroundSelectionBtn = document.getElementById('cancelBackgroundSelectionBtn');
+        const clearBackgroundBtn = document.getElementById('clearBackgroundBtn');
+        const saveBackgroundBtn = document.getElementById('saveBackgroundBtn');
+
+        // Predefined backgrounds (use placeholder images, replace with actual paths if available)
+        const predefinedBackgrounds = [
+            { name: 'Minecraft Sky', url: 'https://placehold.co/100x70/ADD8E6/000000?text=MinecraftSky' },
+            { name: 'Minecraft Mountain', url: 'https://placehold.co/100x70/8B4513/FFFFFF?text=MinecraftMountain' },
+            { name: 'Sunset', url: 'https://placehold.co/100x70/FF7F50/FFFFFF?text=Sunset' },
+            { name: 'Forest Tent', url: 'https://placehold.co/100x70/228B22/FFFFFF?text=ForestTent' },
+            { name: 'Wallpaper', url: 'https://placehold.co/100x70/D3D3D3/000000?text=Wallpaper' }
+        ];
+
+
+        // Variables
+        let isDrawing = false;
+        let lastX = 0;
+        let lastY = 0;
+        let lastGridX = -1;
+        let lastGridY = -1;
+        let brushColor = '#000000';
+        let brushSize = 5;
+        let savedColor = brushColor;
+        let currentTheme = localStorage.getItem('theme') || 'dark';
+        let currentTool = 'draw';
+        let activeTool = currentTool;
+        let toolBeforeShift = 'draw';
+        let isPixelMode = false;
+        let savedFont = fontSelect.value;
+
+        let lightModeClickCount = 0;
+        const clicksToLightMode = 10;
+
+        // History variables
+        // History now saves the dataURL of the base drawing layer and serializable data of placed images.
+        let history = []; // [{ baseDrawingDataURL: string, placedImagesData: [{ src: string, x: number, y: number, w: number, h: number, rot: number }] }]
+        let historyIndex = -1;
+        const maxHistoryStates = 50;
+
+        // Variables for text placement
+        let textPlacementX = 0;
+        let textPlacementY = 0;
+
+        // Variables for line tool
+        let startLineX = 0;
+        let startLineY = 0;
+        let currentLineX = 0; // New: Current X for preview line
+        let currentLineY = 0; // New: Current Y for preview line
+
+        // Variable to track if panning is active (for middle mouse button)
+        let isPanning = false;
+        let panStartX = 0;
+        let panStartY = 0;
+
+        // Variables for the currently manipulable image (only one at a time)
+        // Now also includes offscreen canvas and context
+        let activeManipulableImageObject = null; // { img: Image, x: number, y: number, w: number, h: number, rot: number, layerCanvas: HTMLCanvasElement, layerCtx: CanvasRenderingContext2D }
+        // Placed images, each with their own offscreen canvas
+        let placedImages = []; // Array of { img: Image, x: number, y: number, w: number, h: number, rot: number, layerCanvas: HTMLCanvasElement, layerCtx: CanvasRenderingContext2D }
+
+        let isDraggingImage = false;
+        let dragOffsetX = 0;
+        let dragOffsetY = 0;
+
+        // New variables for resizing images
+        let resizingHandle = null; // 'topLeft', 'topRight', 'bottomLeft', 'bottomRight' or null
+        const HANDLE_SIZE = 10; // Size in pixels for the square handles
+
+
+        // Saved Colors Array and Limit
+        let savedColors = JSON.parse(localStorage.getItem('savedColors')) || [];
+        const maxSavedColors = 15;
+
+        // Canvas background preference
+        let canvasBackground = 'white';
+        let currentBackgroundImage = null;
+        let currentBackgroundImageUrl = localStorage.getItem('currentBackgroundImageUrl') || '';
+        let selectedBackgroundUrl = '';
+
+
+        // --- Helper Functions ---
+
+        function showMessage(message) {
+            messageBox.textContent = message;
+            messageBox.style.display = 'block';
+            clearTimeout(messageBox.timer);
+            messageBox.timer = setTimeout(() => {
+                messageBox.style.display = 'none';
+            }, 2000);
+        }
+
+        function getCurrentBgColor() {
+            if (canvasBackground === 'transparent') {
+                 return 'rgba(0, 0, 0, 0)';
+            }
+            return '#FFFFFF';
+        }
+
+        // Fills the base drawing canvas with the current background color
+        function setBaseCanvasBackground() {
+            const bgColor = getCurrentBgColor();
+            if (canvasBackground === 'transparent') {
+                 baseDrawingCtx.clearRect(0, 0, baseDrawingCanvas.width, baseDrawingCanvas.height);
+            } else {
+                 baseDrawingCtx.fillStyle = bgColor;
+                 baseDrawingCtx.fillRect(0, 0, baseDrawingCanvas.width, baseDrawingCanvas.height);
+            }
+        }
+
+        function hexToRgba(hex) {
+            const bigint = parseInt(hex.replace('#', ''), 16);
+            const r = (bigint >> 16) & 255;
+            const g = (bigint >> 8) & 255;
+            const b = bigint & 255;
+            return [r, g, b, 255];
+        }
+
+        function colorsMatch(color1, color2) {
+             if (color1[0] === -1) return false;
+             if (color2[0] === -1) return false;
+
+             if (color1[3] === 0) {
+                 return color2[3] === 0;
+             }
+             return color1[0] === color2[0] &&
+                    color1[1] === color2[1] &&
+                    color1[2] === color2[2] &&
+                    color1[3] === color2[3];
+        }
+
+        // Flood fill algorithm now works on the base drawing layer
+        function floodFill(startX, startY, targetColor, replacementColor) {
+            const imageData = baseDrawingCtx.getImageData(0, 0, baseDrawingCanvas.width, baseDrawingCanvas.height);
+            const pixels = imageData.data;
+            const width = baseDrawingCanvas.width;
+            const height = baseDrawingCanvas.height;
+
+            if (colorsMatch(targetColor, replacementColor)) {
+                return;
+            }
+
+            const queue = [[startX, startY]];
+
+            function getPixelColor(x, y) {
+                const index = (y * width + x) * 4;
+                if (index < 0 || index >= pixels.length) {
+                    return [-1, -1, -1, -1];
+                }
+                return [pixels[index], pixels[index + 1], pixels[index + 2], pixels[index + 3]];
+            }
+
+            function setPixelColor(x, y, color) {
+                const index = (y * width + x) * 4;
+                 if (index < 0 || index >= pixels.length) {
+                     return;
+                 }
+                pixels[index] = color[0];
+                pixels[index + 1] = color[1];
+                pixels[index + 2] = color[2];
+                pixels[index + 3] = color[3];
+            }
+
+            while (queue.length > 0) {
+                const [x, y] = queue.shift();
+
+                if (x < 0 || x >= width || y < 0 || y >= height) {
+                    continue;
+                }
+
+                const currentColor = getPixelColor(x, y);
+
+                if (colorsMatch(currentColor, targetColor)) {
+                    setPixelColor(x, y, replacementColor);
+
+                    queue.push([x + 1, y]);
+                    queue.push([x - 1, y]);
+                    queue.push([x, y + 1]);
+                    queue.push([x, y - 1]);
+                }
+            }
+            baseDrawingCtx.putImageData(imageData, 0, 0);
+        }
+
+
+        function updateToolButtonStyles() {
+            drawBtn.classList.remove('tool-active');
+            eraserBtn.classList.remove('tool-active');
+            fillBtn.classList.remove('tool-active');
+            textBtn.classList.remove('tool-active');
+            lineBtn.classList.remove('tool-active');
+            uploadImageBtn.classList.remove('tool-active');
+
+            if (isPixelMode) {
+                drawBtn.textContent = 'Pixel Pen';
+                eraserBtn.textContent = 'Pixel Eraser';
+                lineBtn.textContent = 'Pixel Line';
+            } else {
+                drawBtn.textContent = 'Draw';
+                eraserBtn.textContent = 'Eraser';
+                lineBtn.textContent = 'Line';
+            }
+            pixelModeToggle.textContent = `Pixel Art Mode: ${isPixelMode ? 'On' : 'Off'}`;
+
+
+            if (currentTool === 'draw') {
+                drawBtn.classList.add('tool-active');
+            } else if (currentTool === 'erase') {
+                eraserBtn.classList.add('tool-active');
+            } else if (currentTool === 'fill') {
+                fillBtn.classList.add('tool-active');
+            } else if (currentTool === 'text') {
+                textBtn.classList.add('tool-active');
+            } else if (currentTool === 'line') {
+                lineBtn.classList.add('tool-active');
+            } else if (currentTool === 'image') {
+                 uploadImageBtn.classList.add('tool-active');
+            } else if (currentTool === 'generateImage') {
+                 // generateImageBtn.classList.add('tool-active'); // Not in toolbar
+            }
+
+            if (activeTool === 'fill') {
+                canvas.style.cursor = 'crosshair';
+            } else if (activeTool === 'image' || activeTool === 'generateImage') {
+                canvas.style.cursor = activeManipulableImageObject ? 'move' : 'crosshair';
+            }
+            else {
+                 canvas.style.cursor = 'crosshair';
+            }
+        }
+
+        // Commit active image: move it from activeManipulableImageObject to placedImages
+        function commitActiveImageToCanvas() {
+            if (activeManipulableImageObject) {
+                placedImages.push(activeManipulableImageObject);
+                activeManipulableImageObject = null;
+                saveState(); // Save state after committing
+                console.log("Active image committed to canvas pixels (now in placedImages).");
+
+                if (currentTool === 'image' || currentTool === 'generateImage') {
+                    switchTool('draw'); // Switch back to draw tool
+                    showMessage("Image placed. Drawing mode activated.");
+                }
+                redrawCanvas(); // Redraw to remove selection border
+            }
+        }
+
+        // Saves the current canvas state to the history stack
+        function saveState() {
+            console.log("Saving state...");
+            if (baseDrawingCanvas.width > 0 && baseDrawingCanvas.height > 0) {
+                 if (historyIndex < history.length - 1) {
+                     history.splice(historyIndex + 1);
+                 }
+
+                 // Save the base drawing layer as dataURL
+                 const baseDrawingDataURL = baseDrawingCanvas.toDataURL();
+
+                 // Save the serializable properties of placed images
+                 const placedImagesData = placedImages.map(imgObj => ({
+                     src: imgObj.img.src,
+                     x: imgObj.x,
+                     y: imgObj.y,
+                     w: imgObj.w,
+                     h: imgObj.h,
+                     rot: imgObj.rot
+                 }));
+
+                 history.push({
+                     baseDrawingDataURL: baseDrawingDataURL,
+                     placedImagesData: placedImagesData
+                 });
+                 console.log("State saved: Base drawing and placed images.");
+
+                 if (history.length > maxHistoryStates) {
+                     history.shift();
+                 }
+
+                 historyIndex = history.length - 1;
+                 updateHistoryButtons();
+                 console.log("History index:", historyIndex);
+            } else {
+                console.log("Base drawing canvas dimensions are zero, cannot save state.");
+            }
+        }
+
+        // Loads a state object (from history or JSON)
+        async function loadStateFromObject(state) {
+            // Restore the base drawing layer
+            const img = new Image();
+            img.onload = () => {
+                baseDrawingCtx.clearRect(0, 0, baseDrawingCanvas.width, baseDrawingCanvas.height); // Clear base layer
+                setBaseCanvasBackground(); // Set background on base layer
+                baseDrawingCtx.drawImage(img, 0, 0); // Draw the restored base drawing
+                console.log("Base drawing layer restored.");
+
+                // Restore placed images
+                placedImages = []; // Clear current placed images
+                activeManipulableImageObject = null; // Clear active manipulation
+
+                const imagePromises = state.placedImagesData.map(imgData => {
+                    return new Promise((resolve, reject) => {
+                        const newImg = new Image();
+                        newImg.onload = () => {
+                            const layerCanvas = document.createElement('canvas');
+                            layerCanvas.width = newImg.width;
+                            layerCanvas.height = newImg.height;
+                            const layerCtx = layerCanvas.getContext('2d');
+                            layerCtx.drawImage(newImg, 0, 0); // Draw image onto offscreen canvas
+
+                            placedImages.push({
+                                img: newImg,
+                                x: imgData.x,
+                                y: imgData.y,
+                                w: imgData.w,
+                                h: imgData.h,
+                                rot: imgData.rot,
+                                layerCanvas: layerCanvas, // Store the offscreen canvas
+                                layerCtx: layerCtx
+                            });
+                            resolve();
+                        };
+                        newImg.onerror = () => {
+                            console.error("Error loading image during restore:", imgData.src);
+                            resolve(); // Continue even on error
+                        };
+                        newImg.src = imgData.src;
+                    });
+                });
+
+                Promise.all(imagePromises).then(() => {
+                    redrawCanvas(); // Redraw the main canvas after restoring everything
+                    updateHistoryButtons();
+                });
+            };
+            img.onerror = () => {
+                console.error("Error loading base drawing layer during restore.");
+                // If base drawing layer cannot be loaded, clear and continue
+                baseDrawingCtx.clearRect(0, 0, baseDrawingCanvas.width, baseDrawingCanvas.height);
+                setBaseCanvasBackground();
+                // Try to restore images anyway
+                const imagePromises = state.placedImagesData.map(imgData => {
+                    return new Promise((resolve, reject) => {
+                        const newImg = new Image();
+                        newImg.onload = () => {
+                            const layerCanvas = document.createElement('canvas');
+                            layerCanvas.width = newImg.width;
+                            layerCanvas.height = newImg.height;
+                            const layerCtx = layerCanvas.getContext('2d');
+                            layerCtx.drawImage(newImg, 0, 0);
+
+                            placedImages.push({
+                                img: newImg,
+                                x: imgData.x,
+                                y: imgData.y,
+                                w: imgData.w,
+                                h: imgData.h,
+                                rot: imgData.rot,
+                                layerCanvas: layerCanvas,
+                                layerCtx: layerCtx
+                            });
+                            resolve();
+                        };
+                        newImg.onerror = () => {
+                            console.error("Error loading image during restore:", imgData.src);
+                            resolve();
+                        };
+                        newImg.src = imgData.src;
+                    });
+                });
+
+                Promise.all(imagePromises).then(() => {
+                    redrawCanvas();
+                    updateHistoryButtons();
+                });
+            };
+            img.src = state.baseDrawingDataURL;
+        }
+
+        // Restores a canvas state from the history stack
+        async function restoreState(index) {
+            console.log("Restoring state to index:", index);
+            if (index >= 0 && index < history.length) {
+                const state = history[index];
+                await loadStateFromObject(state);
+                historyIndex = index;
+                console.log("History index after restore:", historyIndex);
+            } else {
+                console.log("Invalid history index for restore:", index);
+            }
+        }
+
+
+        function updateHistoryButtons() {
+            undoBtn.disabled = historyIndex <= 0;
+            redoBtn.disabled = historyIndex >= history.length - 1;
+            console.log(`History buttons updated: Undo disabled=${undoBtn.disabled}, Redo disabled=${redoBtn.disabled}`);
+        }
+
+        function getMousePos(event) {
+            const rect = canvas.getBoundingClientRect();
+            const clientX = event.clientX || (event.touches && event.touches[0] ? event.touches[0].clientX : 0);
+            const clientY = event.clientY || (event.touches && event.touches[0] ? event.touches[0].clientY : 0);
+            return {
+                x: clientX - rect.left,
+                y: clientY - rect.top
+            };
+        }
+
+        // Draws a single pixel on the base drawing layer
+        function drawPixel(x, y, color, size) {
+            const pixelSize = size;
+            const gridX = Math.floor(x / pixelSize) * pixelSize;
+            const gridY = Math.floor(y / pixelSize) * pixelSize;
+
+            if (gridX !== lastGridX || gridY !== lastGridY) {
+                baseDrawingCtx.fillStyle = color;
+                baseDrawingCtx.fillRect(gridX, gridY, pixelSize, pixelSize);
+                lastGridX = gridX;
+                lastGridY = gridY;
+            }
+        }
+
+         // Erases a single pixel on the base drawing layer
+         function erasePixel(x, y, size) {
+             const pixelSize = size;
+             const gridX = Math.floor(x / pixelSize) * pixelSize;
+             const gridY = Math.floor(y / pixelSize) * pixelSize;
+
+             if (gridX !== lastGridX || gridY !== lastGridY) {
+                 baseDrawingCtx.fillStyle = getCurrentBgColor();
+                 baseDrawingCtx.fillRect(gridX, gridY, pixelSize, pixelSize);
+                 lastGridX = gridX;
+                 lastGridY = gridY;
+             }
+         }
+
+
+        function startDrawing(event) {
+            if ((currentTool === 'image' || currentTool === 'generateImage') && activeManipulableImageObject) {
+                const pos = getMousePos(event);
+                const handles = getHandleCoords(activeManipulableImageObject);
+                
+                // Check if a handle was clicked
+                for (const key in handles) {
+                    const handle = handles[key];
+                    if (pos.x >= handle.x && pos.x <= handle.x + HANDLE_SIZE &&
+                        pos.y >= handle.y && pos.y <= handle.y + HANDLE_SIZE) {
+                        resizingHandle = key;
+                        // Save initial state for resizing
+                        activeManipulableImageObject.initialX = activeManipulableImageObject.x;
+                        activeManipulableImageObject.initialY = activeManipulableImageObject.y;
+                        activeManipulableImageObject.initialW = activeManipulableImageObject.w;
+                        activeManipulableImageObject.initialH = activeManipulableImageObject.h;
+                        activeManipulableImageObject.initialMouseX = pos.x;
+                        activeManipulableImageObject.initialMouseY = pos.y;
+
+                        // Set the correct cursor
+                        if (key === 'topLeft' || key === 'bottomRight') canvas.style.cursor = 'nwse-resize';
+                        if (key === 'topRight' || key === 'bottomLeft') canvas.style.cursor = 'nesw-resize';
+                        return; // A handle was clicked, don't proceed with dragging the image
+                    }
+                }
+
+                // If no handle was clicked, check if the image itself was clicked for dragging
+                 if (pos.x >= activeManipulableImageObject.x && pos.x <= activeManipulableImageObject.x + activeManipulableImageObject.w && pos.y >= activeManipulableImageObject.y && pos.y <= activeManipulableImageObject.y + activeManipulableImageObject.h) {
+                     isDraggingImage = true;
+                     dragOffsetX = pos.x - activeManipulableImageObject.x;
+                     dragOffsetY = pos.y - activeManipulableImageObject.y;
+                     canvas.style.cursor = 'grabbing';
+                 }
+                return;
+            }
+
+            if (activeTool === 'line' || activeTool === 'lineErase') {
+                const pos = getMousePos(event);
+                startLineX = pos.x;
+                startLineY = pos.y;
+                currentLineX = pos.x; // Initialize currentLineX
+                currentLineY = pos.y; // Initialize currentLineY
+                isDrawing = true;
+                // saveState(); // DO NOT save on start, only on release
+                return;
+            }
+
+            isDrawing = true;
+            const pos = getMousePos(event);
+            lastX = pos.x;
+            lastY = pos.y;
+
+            if (isPixelMode && activeTool !== 'line' && activeTool !== 'lineErase') {
+                if (activeTool === 'draw' || activeTool === 'pixel') {
+                    drawPixel(lastX, lastY, brushColor, brushSize);
+                } else if (activeTool === 'erase' || activeTool === 'pixelErase') {
+                    erasePixel(lastX, lastY, brushSize);
+                }
+                 lastGridX = Math.floor(lastX / brushSize) * brushSize;
+                 lastGridY = Math.floor(lastY / brushSize) * brushSize;
+            } else if (!isPixelMode && activeTool !== 'line' && activeTool !== 'lineErase') {
+                 baseDrawingCtx.beginPath(); // Draw on the base layer
+                 baseDrawingCtx.moveTo(lastX, lastY);
+            }
+            if (activeTool !== 'line' && activeTool !== 'lineErase') {
+                saveState();
+            }
+        }
+
+        // Function to get handle coordinates
+        function getHandleCoords(imgObj) {
+            const halfHandle = HANDLE_SIZE / 2;
+            return {
+                topLeft: { x: imgObj.x - halfHandle, y: imgObj.y - halfHandle },
+                topRight: { x: imgObj.x + imgObj.w - halfHandle, y: imgObj.y - halfHandle },
+                bottomLeft: { x: imgObj.x - halfHandle, y: imgObj.y + imgObj.h - halfHandle },
+                bottomRight: { x: imgObj.x + imgObj.w - halfHandle, y: imgObj.y + imgObj.h - halfHandle }
+            };
+        }
+
+        function draw(event) {
+            if ((currentTool === 'image' || currentTool === 'generateImage') && isDraggingImage && activeManipulableImageObject) {
+                 const pos = getMousePos(event);
+                 activeManipulableImageObject.x = pos.x - dragOffsetX;
+                 activeManipulableImageObject.y = pos.y - dragOffsetY;
+                 redrawCanvas(); // Redraw main canvas to show image movement
+                 return;
+            }
+
+            if (resizingHandle && activeManipulableImageObject) {
+                 const pos = getMousePos(event);
+                 const dx = pos.x - activeManipulableImageObject.initialMouseX;
+                 const dy = pos.y - activeManipulableImageObject.initialMouseY;
+
+                 let newW = activeManipulableImageObject.initialW;
+                 let newH = activeManipulableImageObject.initialH;
+                 let newX = activeManipulableImageObject.initialX;
+                 let newY = activeManipulableImageObject.initialY;
+
+                 const aspectRatio = activeManipulableImageObject.initialW / activeManipulableImageObject.initialH;
+
+                 switch (resizingHandle) {
+                     case 'topLeft':
+                         newW = activeManipulableImageObject.initialW - dx;
+                         newH = newW / aspectRatio;
+                         newX = activeManipulableImageObject.initialX + (activeManipulableImageObject.initialW - newW);
+                         newY = activeManipulableImageObject.initialY + (activeManipulableImageObject.initialH - newH);
+                         break;
+                     case 'topRight':
+                         newW = activeManipulableImageObject.initialW + dx;
+                         newH = newW / aspectRatio;
+                         newY = activeManipulableImageObject.initialY + (activeManipulableImageObject.initialH - newH);
+                         break;
+                     case 'bottomLeft':
+                         newW = activeManipulableImageObject.initialW - dx;
+                         newH = newW / aspectRatio;
+                         newX = activeManipulableImageObject.initialX + (activeManipulableImageObject.initialW - newW);
+                         break;
+                     case 'bottomRight':
+                         newW = activeManipulableImageObject.initialW + dx;
+                         newH = newW / aspectRatio;
+                         break;
+                 }
+
+                 // Prevent negative dimensions and ensure a minimum size
+                 if (newW < 10) newW = 10;
+                 if (newH < 10) newH = 10;
+
+                 activeManipulableImageObject.w = newW;
+                 activeManipulableImageObject.h = newH;
+                 activeManipulableImageObject.x = newX;
+                 activeManipulableImageObject.y = newY;
+
+                 redrawCanvas();
+                 return;
+             }
+
+            if (!isDrawing) return;
+
+            const pos = getMousePos(event);
+            currentLineX = pos.x; // Update currentLineX for preview
+            currentLineY = pos.y; // Update currentLineY for preview
+
+            if (activeTool === 'line' || activeTool === 'lineErase') {
+                redrawCanvas(); // Clear main canvas and redraw base drawing and other images
+
+                // Draw the preview line on the main canvas (ctx)
+                ctx.lineWidth = brushSize;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+
+                const isErasingLine = (toolBeforeShift === 'erase' || toolBeforeShift === 'pixelErase');
+
+                if (isErasingLine) {
+                    ctx.globalCompositeOperation = 'destination-out';
+                    ctx.fillStyle = 'rgba(0,0,0,1)'; // Use opaque color for destination-out
+                } else {
+                    ctx.fillStyle = brushColor;
+                }
+
+                if (isPixelMode) {
+                    const x0 = Math.floor(startLineX / brushSize) * brushSize;
+                    const y0 = Math.floor(startLineY / brushSize) * brushSize;
+                    const x1 = Math.floor(currentLineX / brushSize) * brushSize;
+                    const y1 = Math.floor(currentLineY / brushSize) * brushSize;
+
+                    // Bresenham's line algorithm for pixel mode preview
+                    let x = x0;
+                    let y = y0;
+                    const dx = Math.abs(x1 - x0);
+                    const dy = Math.abs(y1 - y0);
+                    const sx = (x0 < x1) ? brushSize : -brushSize;
+                    const sy = (y0 < y1) ? brushSize : -brushSize;
+                    let err = dx - dy;
+
+                    while (true) {
+                        ctx.fillRect(x, y, brushSize, brushSize); // Draw each pixel directly
+                        if ((x === x1) && (y === y1)) break;
+                        const e2 = 2 * err;
+                        if (e2 > -dy) { err -= dy; x += sx; }
+                        if (e2 < dx) { err += dx; y += sy; }
+                    }
+                } else {
+                    ctx.beginPath();
+                    ctx.moveTo(startLineX, startLineY);
+                    ctx.lineTo(currentLineX, currentLineY);
+                    ctx.stroke();
+                    ctx.closePath();
+                }
+
+                if (isErasingLine) {
+                    ctx.globalCompositeOperation = 'source-over'; // Reset composite operation
+                }
+                return; // No further drawing on baseDrawingCtx
+            }
+
+            // Normal drawing and erasing mode
+            const currentX = pos.x;
+            const currentY = pos.y;
+
+            if (isPixelMode) {
+                if (activeTool === 'draw' || activeTool === 'pixel') {
+                    drawPixel(currentX, currentY, brushColor, brushSize);
+                } else if (activeTool === 'erase' || activeTool === 'pixelErase') {
+                    erasePixel(currentX, currentY, brushSize);
+                }
+            } else {
+                baseDrawingCtx.lineWidth = brushSize;
+                baseDrawingCtx.lineCap = 'round';
+                baseDrawingCtx.lineJoin = 'round';
+
+                if (activeTool === 'draw') {
+                    baseDrawingCtx.strokeStyle = brushColor;
+                    baseDrawingCtx.lineTo(currentX, currentY);
+                    baseDrawingCtx.stroke();
+                } else if (activeTool === 'erase') {
+                    baseDrawingCtx.globalCompositeOperation = 'destination-out';
+                    baseDrawingCtx.strokeStyle = 'rgba(0,0,0,1)';
+                    baseDrawingCtx.lineTo(currentX, currentY);
+                    baseDrawingCtx.stroke();
+                    baseDrawingCtx.globalCompositeOperation = 'source-over';
+                }
+                lastX = currentX;
+                lastY = currentY;
+            }
+            redrawCanvas(); // Always redraw main canvas after base drawing changes
+        }
+
+        function stopDrawing(event) {
+             if ((currentTool === 'image' || currentTool === 'generateImage') && isDraggingImage) {
+                 isDraggingImage = false;
+                 canvas.style.cursor = activeManipulableImageObject ? 'move' : 'crosshair';
+                 return;
+             }
+             if (resizingHandle) {
+                 resizingHandle = null;
+                 canvas.style.cursor = activeManipulableImageObject ? 'move' : 'crosshair';
+                 saveState(); // Save state after resizing
+                 return;
+             }
+
+            if (!isDrawing) return;
+
+            isDrawing = false;
+            baseDrawingCtx.closePath();
+
+            if (activeTool === 'line' || activeTool === 'lineErase') {
+                // Draw the final line on the baseDrawingCtx
+                baseDrawingCtx.lineWidth = brushSize;
+                baseDrawingCtx.lineCap = 'round';
+                baseDrawingCtx.lineJoin = 'round';
+
+                const isErasingLine = (toolBeforeShift === 'erase' || toolBeforeShift === 'pixelErase');
+
+                if (isErasingLine) {
+                    baseDrawingCtx.globalCompositeOperation = 'destination-out';
+                    baseDrawingCtx.fillStyle = 'rgba(0,0,0,1)'; // Use opaque color for destination-out
+                } else {
+                    baseDrawingCtx.fillStyle = brushColor;
+                }
+
+                if (isPixelMode) {
+                    const x0 = Math.floor(startLineX / brushSize) * brushSize;
+                    const y0 = Math.floor(startLineY / brushSize) * brushSize;
+                    const x1 = Math.floor(currentLineX / brushSize) * brushSize;
+                    const y1 = Math.floor(currentLineY / brushSize) * brushSize;
+
+                    // Bresenham's line algorithm for final line
+                    let x = x0;
+                    let y = y0;
+                    const dx = Math.abs(x1 - x0);
+                    const dy = Math.abs(y1 - y0);
+                    const sx = (x0 < x1) ? brushSize : -brushSize;
+                    const sy = (y0 < y1) ? brushSize : -brushSize;
+                    let err = dx - dy;
+
+                    while (true) {
+                        baseDrawingCtx.fillRect(x, y, brushSize, brushSize); // Draw each pixel directly
+                        if ((x === x1) && (y === y1)) break;
+                        const e2 = 2 * err;
+                        if (e2 > -dy) { err -= dy; x += sx; }
+                        if (e2 < dx) { err += dx; y += sy; }
+                    }
+                } else {
+                    baseDrawingCtx.beginPath();
+                    baseDrawingCtx.moveTo(startLineX, startLineY);
+                    baseDrawingCtx.lineTo(currentLineX, currentLineY);
+                    baseDrawingCtx.stroke();
+                    baseDrawingCtx.closePath();
+                }
+
+                if (isErasingLine) {
+                    baseDrawingCtx.globalCompositeOperation = 'source-over';
+                }
+                saveState(); // Save state after drawing the final line
+             } else {
+                 // For other tools, state was saved at the start of drawing
+             }
+
+            lastGridX = -1;
+            lastGridY = -1;
+            redrawCanvas(); // Ensure final redraw after stopping drawing
+        }
+
+        function handleCanvasClick(event) {
+            const pos = getMousePos(event);
+            const clickX = Math.floor(pos.x);
+            const clickY = Math.floor(pos.y);
+
+            if (currentTool === 'fill') {
+                const pixelColor = baseDrawingCtx.getImageData(clickX, clickY, 1, 1).data;
+                const targetColor = [pixelColor[0], pixelColor[1], pixelColor[2], pixelColor[3]];
+
+                const replacementColor = hexToRgba(brushColor);
+
+                saveState();
+                floodFill(clickX, clickY, targetColor, replacementColor);
+                saveState();
+                redrawCanvas(); // Redraw main canvas after flood fill
+            } else if (currentTool === 'text') {
+                textPlacementX = clickX;
+                textPlacementY = clickY;
+                textInputModal.classList.add('visible');
+                fontSelect.value = savedFont;
+                textSizeValue.textContent = textSizeSlider.value;
+            } else if (currentTool === 'image' || currentTool === 'generateImage') {
+                 if (activeManipulableImageObject) {
+                     if (!(clickX >= activeManipulableImageObject.x && clickX <= activeManipulableImageObject.x + activeManipulableImageObject.w &&
+                           clickY >= activeManipulableImageObject.y && clickY <= activeManipulableImageObject.y + activeManipulableImageObject.h)) {
+                         commitActiveImageToCanvas();
+                     }
+                 }
+            }
+        }
+
+        // Redraws the main canvas, including the base drawing layer and all image layers
+        function redrawCanvas() {
+            // Clear the visible canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // 1. Draw the background image on the main canvas (under everything)
+            if (currentBackgroundImage) {
+                ctx.drawImage(currentBackgroundImage, 0, 0, canvas.width, canvas.height);
+            } else {
+                // If no background image, fill with the canvas background color
+                ctx.fillStyle = getCurrentBgColor();
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
+
+            // 2. Draw the base drawing layer (baseDrawingCanvas) on the main canvas
+            // Check if baseDrawingCanvas has valid dimensions before drawing
+            if (baseDrawingCanvas.width > 0 && baseDrawingCanvas.height > 0) {
+                ctx.drawImage(baseDrawingCanvas, 0, 0);
+            } else {
+                console.warn("baseDrawingCanvas has zero dimensions, cannot draw.");
+            }
+
+
+            // 3. Draw all placed images on the main canvas
+            placedImages.forEach(imgObj => {
+                ctx.save();
+                ctx.translate(imgObj.x + imgObj.w / 2, imgObj.y + imgObj.h / 2);
+                ctx.rotate(imgObj.rot);
+                // Check if layerCanvas has valid dimensions before drawing
+                if (imgObj.layerCanvas.width > 0 && imgObj.layerCanvas.height > 0) {
+                    ctx.drawImage(imgObj.layerCanvas, -imgObj.w / 2, -imgObj.h / 2, imgObj.w, imgObj.h);
+                } else {
+                    console.warn("A layerCanvas has zero dimensions, cannot draw.");
+                }
+                ctx.restore();
+            });
+
+            // 4. Draw the currently active manipulable image (if any) on top
+            if (activeManipulableImageObject) {
+                ctx.save();
+                ctx.translate(activeManipulableImageObject.x + activeManipulableImageObject.w / 2, activeManipulableImageObject.y + activeManipulableImageObject.h / 2);
+                ctx.rotate(activeManipulableImageObject.rot);
+                // Check if layerCanvas has valid dimensions before drawing
+                if (activeManipulableImageObject.layerCanvas.width > 0 && activeManipulableImageObject.layerCanvas.height > 0) {
+                    ctx.drawImage(activeManipulableImageObject.layerCanvas, -activeManipulableImageObject.w / 2, -activeManipulableImageObject.h / 2, activeManipulableImageObject.w, activeManipulableImageObject.h);
+                } else {
+                    console.warn("The active manipulable image layerCanvas has zero dimensions, cannot draw.");
+                }
+                ctx.restore();
+
+                // Draw a selection border around the active image
+                ctx.strokeStyle = 'blue';
+                ctx.lineWidth = 2;
+                ctx.setLineDash([5, 5]);
+                ctx.strokeRect(activeManipulableImageObject.x, activeManipulableImageObject.y, activeManipulableImageObject.w, activeManipulableImageObject.h);
+                ctx.setLineDash([]);
+
+                // Draw the corner handles
+                ctx.fillStyle = 'blue';
+                const handles = getHandleCoords(activeManipulableImageObject);
+                for (const key in handles) {
+                    const handle = handles[key];
+                    ctx.fillRect(handle.x, handle.y, HANDLE_SIZE, HANDLE_SIZE);
+                }
+            }
+        }
+
+        function renderSavedColors() {
+            savedColorsContainer.innerHTML = '';
+
+            savedColors.forEach((color, index) => {
+                const colorCircle = document.createElement('div');
+                colorCircle.classList.add('saved-color-circle');
+                colorCircle.style.backgroundColor = color;
+                colorCircle.dataset.color = color;
+                colorCircle.title = color;
+
+                colorCircle.addEventListener('click', () => {
+                    brushColor = color;
+                    savedColor = color;
+                    colorPicker.value = color;
+                    savedColorsContainer.querySelectorAll('.saved-color-circle').forEach(circle => {
+                        circle.classList.remove('active');
+                    });
+                    colorCircle.classList.add('active');
+                    showMessage(`Color selected: ${color}`);
+                });
+
+                 colorCircle.addEventListener('contextmenu', (e) => {
+                     e.preventDefault();
+                     removeSavedColor(index);
+                 });
+
+                savedColorsContainer.appendChild(colorCircle);
+            });
+
+             savedColorsContainer.appendChild(saveColorBtn);
+
+             if (savedColors.length >= maxSavedColors) {
+                 saveColorBtn.disabled = false;
+                 saveColorBtn.innerHTML = `
+                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 6v3l4-4-4-4v3c-4.42 0-8 3.58-8 8 0 1.57.46 3.03 1.24 4.26L6.7 14.8c-.45-.83-.7-1.79-.7-2.8 0-3.31 2.69-6 6-6zm6.76 1.74L17.3 9.2c.44.84.7 1.79.7 2.8 0 3.31-2.69 6-6 6v-3l-4 4 4 4v-3c4.42 0 8-3.58 8-8 0-1.57-.46-3.03-1.24-4.26z"/>
+                     </svg>
+                 `;
+                 saveColorBtn.title = 'Reset Saved Colors';
+             } else {
+                 saveColorBtn.disabled = false;
+                 saveColorBtn.textContent = '+';
+                 saveColorBtn.title = 'Save Current Color';
+             }
+        }
+
+        function addSavedColor() {
+            if (savedColors.length < maxSavedColors) {
+                const currentColor = colorPicker.value;
+                if (!savedColors.includes(currentColor)) {
+                    savedColors.push(currentColor);
+                    localStorage.setItem('savedColors', JSON.stringify(savedColors));
+                    renderSavedColors();
+                    showMessage(`Color ${currentColor} saved.`);
+                } else {
+                    showMessage("This color is already saved.");
+                }
+            } else {
+                showMessage(`Maximum number of saved colors reached (${maxSavedColors}).`);
+            }
+        }
+
+         function removeSavedColor(index) {
+             if (index >= 0 && index < savedColors.length) {
+                 const removedColor = savedColors[index];
+                 savedColors.splice(index, 1);
+                 localStorage.setItem('savedColors', JSON.stringify(savedColors));
+                 renderSavedColors();
+                 showMessage(`Color ${removedColor} removed.`);
+             }
+         }
+
+         function resetSavedColors() {
+             savedColors = [];
+             localStorage.removeItem('savedColors');
+             renderSavedColors();
+             showMessage("Saved colors reset.");
+         }
+
+        function switchTool(newTool) {
+            if ((currentTool === 'image' || currentTool === 'generateImage') && activeManipulableImageObject && newTool !== 'image' && newTool !== 'generateImage') {
+                commitActiveImageToCanvas();
+            }
+
+            currentTool = newTool;
+            activeTool = newTool;
+            brushColor = savedColor;
+            updateToolButtonStyles();
+            // redrawCanvas() is already in draw/stopDrawing/handleCanvasClick
+        }
+
+        // --- Event Handlers ---
+
+        brushSizeSlider.addEventListener('input', (e) => {
+            brushSize = parseInt(e.target.value);
+            brushSizeValue.textContent = brushSize;
+        });
+
+        colorPicker.addEventListener('input', (e) => {
+            brushColor = e.target.value;
+            savedColor = brushColor;
+             savedColorsContainer.querySelectorAll('.saved-color-circle').forEach(circle => {
+                 circle.classList.remove('active');
+             });
+        });
+
+        drawBtn.addEventListener('click', () => switchTool('draw'));
+        eraserBtn.addEventListener('click', () => switchTool('erase'));
+        fillBtn.addEventListener('click', () => switchTool('fill'));
+        textBtn.addEventListener('click', () => switchTool('text'));
+        lineBtn.addEventListener('click', () => switchTool('line'));
+
+        uploadImageBtn.addEventListener('click', () => {
+            if (activeManipulableImageObject) {
+                commitActiveImageToCanvas();
+            }
+            imageUploadInput.click();
+        });
+
+        imageUploadInput.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        // Create offscreen canvas for this image layer
+                        const layerCanvas = document.createElement('canvas');
+                        layerCanvas.width = img.width;
+                        layerCanvas.height = img.height;
+                        const layerCtx = layerCanvas.getContext('2d');
+                        layerCtx.drawImage(img, 0, 0); // Draw image onto its layer canvas
+
+                        const maxCanvasDim = Math.min(canvas.width, canvas.height);
+                        const maxImageDim = Math.max(img.width, img.height);
+                        let scale = 1;
+                        if (maxImageDim > maxCanvasDim * 0.8) {
+                             scale = (maxCanvasDim * 0.8) / maxImageDim;
+                        }
+                        const imgW = img.width * scale;
+                        const imgH = img.height * scale;
+                        const imgX = (canvas.width - imgW) / 2;
+                        const imgY = (canvas.height - imgH) / 2;
+
+                        activeManipulableImageObject = {
+                            img: img,
+                            x: imgX,
+                            y: imgY,
+                            w: imgW,
+                            h: imgH,
+                            rot: 0,
+                            layerCanvas: layerCanvas, // Store the offscreen canvas
+                            layerCtx: layerCtx
+                        };
+
+                        currentTool = 'image';
+                        activeTool = 'image';
+                        updateToolButtonStyles();
+                        redrawCanvas();
+                        showMessage("Image loaded. Click and drag to move, click outside to place.");
+                    };
+                    img.onerror = () => {
+                         showMessage("Error loading image.");
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+
+        undoBtn.addEventListener('click', () => {
+            if (historyIndex > 0) {
+                if (activeManipulableImageObject) {
+                    commitActiveImageToCanvas();
+                }
+                restoreState(historyIndex - 1);
+            }
+        });
+
+        redoBtn.addEventListener('click', () => {
+            if (historyIndex < history.length - 1) {
+                if (activeManipulableImageObject) {
+                    commitActiveImageToCanvas();
+                }
+                restoreState(historyIndex + 1);
+            }
+        });
+
+        clearBtn.addEventListener('click', () => {
+            if (activeManipulableImageObject) {
+                commitActiveImageToCanvas();
+            }
+            saveState(); // Save current state before clearing
+            baseDrawingCtx.clearRect(0, 0, baseDrawingCanvas.width, baseDrawingCanvas.height); // Clear base drawing
+            setBaseCanvasBackground(); // Reset base drawing background
+            placedImages = []; // Clear all image layers
+            activeManipulableImageObject = null; // Clear active image
+            saveState(); // Save cleared state
+            redrawCanvas(); // Redraw main canvas
+            showMessage("Canvas cleared.");
+        });
+
+        openMenuBtn.addEventListener('click', () => {
+            sideMenu.classList.add('open');
+        });
+
+        closeMenuBtn.addEventListener('click', () => {
+            sideMenu.classList.remove('open');
+        });
+
+        darkModeToggle.addEventListener('click', () => {
+            if (currentTheme === 'dark') {
+                lightModeClickCount++;
+                if (lightModeClickCount >= clicksToLightMode) {
+                    body.classList.remove('dark-mode');
+                    currentTheme = 'light';
+                    localStorage.setItem('theme', 'light');
+                    darkModeToggle.textContent = `🌙 Dark`;
+                    lightModeClickCount = 0;
+                    showMessage("Light mode activated!");
+                } else {
+                    darkModeToggle.textContent = `☀️ Light (Click ${clicksToLightMode - lightModeClickCount})`;
+                    showMessage(`${clicksToLightMode - lightModeClickCount} click(s) remaining for light mode.`);
+                }
+            } else {
+                body.classList.add('dark-mode');
+                currentTheme = 'dark';
+                localStorage.setItem('theme', 'dark');
+                darkModeToggle.textContent = `☀️ Light`;
+                lightModeClickCount = 0;
+                showMessage("Dark mode activated.");
+            }
+            redrawCanvas();
+        });
+
+
+         pixelModeToggle.addEventListener('click', () => {
+             isPixelMode = !isPixelMode;
+             updateToolButtonStyles();
+             showMessage(`Pixel Art Mode: ${isPixelMode ? 'On' : 'Off'}`);
+         });
+
+
+        exportPngBtn.addEventListener('click', () => {
+            if (activeManipulableImageObject) {
+                commitActiveImageToCanvas();
+            }
+
+            const link = document.createElement('a');
+            let filename = fileNameInput.value.trim();
+            if (filename === '') {
+                 filename = 'my_drawing';
+            }
+            link.download = `${filename}.png`;
+
+            // Create a temporary canvas that combines all layers for export
+            const exportCanvas = document.createElement('canvas');
+            exportCanvas.width = canvas.width;
+            exportCanvas.height = canvas.height;
+            const exportCtx = exportCanvas.getContext('2d');
+
+            // Draw background image if present
+            if (currentBackgroundImage) {
+                exportCtx.drawImage(currentBackgroundImage, 0, 0, exportCanvas.width, exportCanvas.height);
+            } else {
+                // Otherwise, fill with the canvas background color (white or transparent)
+                exportCtx.fillStyle = getCurrentBgColor();
+                exportCtx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
+            }
+
+            // Draw the base drawing layer
+            exportCtx.drawImage(baseDrawingCanvas, 0, 0);
+
+            // Draw all placed images on top
+            placedImages.forEach(imgObj => {
+                exportCtx.save();
+                exportCtx.translate(imgObj.x + imgObj.w / 2, imgObj.y + imgObj.h / 2);
+                exportCtx.rotate(imgObj.rot);
+                exportCtx.drawImage(imgObj.layerCanvas, -imgObj.w / 2, -imgObj.h / 2, imgObj.w, imgObj.h);
+                exportCtx.restore();
+            });
+
+
+            link.href = exportCanvas.toDataURL('image/png');
+            link.click();
+            showMessage(`Image exported as ${filename}.png.`);
+        });
+
+        // New JSON export function
+        exportJsonBtn.addEventListener('click', () => {
+            if (activeManipulableImageObject) {
+                commitActiveImageToCanvas(); // Commit any active image before export
+            }
+
+            if (historyIndex < 0) {
+                showMessage("No drawing to export.");
+                return;
+            }
+
+            const currentState = history[historyIndex];
+            const exportData = {
+                canvasWidth: canvas.width,
+                canvasHeight: canvas.height,
+                canvasBackground: canvasBackground,
+                currentBackgroundImageUrl: currentBackgroundImageUrl,
+                baseDrawingDataURL: currentState.baseDrawingDataURL,
+                placedImagesData: currentState.placedImagesData
+            };
+
+            const jsonString = JSON.stringify(exportData, null, 2);
+            const blob = new Blob([jsonString], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+
+            const link = document.createElement('a');
+            let filename = fileNameInput.value.trim();
+            if (filename === '') {
+                 filename = 'my_drawing';
+            }
+            link.download = `${filename}.json`;
+            link.href = url;
+            link.click();
+
+            URL.revokeObjectURL(url);
+            showMessage(`Drawing exported as ${filename}.json.`);
+        });
+
+
+        addTextBtn.addEventListener('click', () => {
+            const text = textInput.value.trim();
+            const font = fontSelect.value;
+            const size = parseInt(textSizeSlider.value);
+            const color = brushColor;
+
+            if (text) {
+                saveState();
+                // Text is now placed on the base drawing layer
+                baseDrawingCtx.fillStyle = color;
+                baseDrawingCtx.font = `${size}px "${font}"`;
+                baseDrawingCtx.fillText(text, textPlacementX, textPlacementY + size * 0.8);
+
+                saveState();
+                textInput.value = '';
+                textInputModal.classList.remove('visible');
+                redrawCanvas(); // Redraw main canvas to show new text
+                showMessage("Text added.");
+            } else {
+                showMessage("Enter text to add.");
+            }
+        });
+
+        cancelTextBtn.addEventListener('click', () => {
+            textInput.value = '';
+            textInputModal.classList.remove('visible');
+            showMessage("Text addition cancelled.");
+        });
+
+         textSizeSlider.addEventListener('input', (e) => {
+             textSizeValue.textContent = e.target.value;
+         });
+
+         fontSelect.addEventListener('change', (e) => {
+             savedFont = e.target.value;
+         });
+
+        saveColorBtn.addEventListener('click', () => {
+            if (savedColors.length >= maxSavedColors) {
+                resetSavedColors();
+            } else {
+                addSavedColor();
+            }
+        });
+
+        resetColorsBtn.addEventListener('click', () => {
+            resetSavedColors();
+        });
+
+
+        // --- Canvas Event Listeners ---
+
+        canvas.addEventListener('mousedown', (e) => {
+             if (e.button === 1) {
+                 isPanning = true;
+                 const pos = getMousePos(e);
+                 panStartX = pos.x;
+                 panStartY = pos.y;
+                 canvas.style.cursor = 'grabbing';
+                 return;
+             }
+             if (e.button === 0) {
+                startDrawing(e);
+             }
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+             if (isPanning) {
+                 return;
+             }
+
+             const pos = getMousePos(e);
+
+             // Update cursor for handles on hover
+             if ((currentTool === 'image' || currentTool === 'generateImage') && activeManipulableImageObject && !isDraggingImage && !resizingHandle) {
+                 const handles = getHandleCoords(activeManipulableImageObject);
+                 let cursorSet = false;
+                 for (const key in handles) {
+                     const handle = handles[key];
+                     if (pos.x >= handle.x && pos.x <= handle.x + HANDLE_SIZE &&
+                         pos.y >= handle.y && pos.y <= handle.y + HANDLE_SIZE) {
+                         if (key === 'topLeft' || key === 'bottomRight') canvas.style.cursor = 'nwse-resize';
+                         if (key === 'topRight' || key === 'bottomLeft') canvas.style.cursor = 'nesw-resize';
+                         cursorSet = true;
+                         break;
+                     }
+                 }
+                 if (!cursorSet) {
+                     canvas.style.cursor = activeManipulableImageObject &&
+                                          pos.x >= activeManipulableImageObject.x && pos.x <= activeManipulableImageObject.x + activeManipulableImageObject.w &&
+                                          pos.y >= activeManipulableImageObject.y && pos.y <= activeManipulableImageObject.y + activeManipulableImageObject.h
+                                          ? 'move' : 'crosshair';
+                 }
+             }
+
+            draw(e);
+        });
+
+        canvas.addEventListener('mouseup', (e) => {
+             if (isPanning) {
+                 isPanning = false;
+                 canvas.style.cursor = activeManipulableImageObject ? 'move' : 'crosshair';
+                 return;
+             }
+             if (resizingHandle) {
+                 resizingHandle = null;
+                 canvas.style.cursor = activeManipulableImageObject ? 'move' : 'crosshair';
+                 saveState(); // Save state after resizing
+                 return;
+             }
+             if (e.button === 0) {
+                stopDrawing(e);
+             }
+        });
+
+         canvas.addEventListener('contextmenu', (e) => {
+             if (isPanning) {
+                 e.preventDefault();
+             }
+         });
+
+
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            if (e.touches.length === 1) {
+                const touch = e.touches[0];
+                const simulatedEvent = new MouseEvent('mousedown', {
+                    clientX: touch.clientX,
+                    clientY: touch.clientY,
+                    button: 0,
+                    bubbles: true,
+                    cancelable: true
+                });
+                canvas.dispatchEvent(simulatedEvent);
+            }
+        }, { passive: false });
+
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+             if (e.touches.length === 1) {
+                const touch = e.touches[0];
+                const simulatedEvent = new MouseEvent('mousemove', {
+                    clientX: touch.clientX,
+                    clientY: touch.clientY,
+                    bubbles: true,
+                    cancelable: true
+                });
+                canvas.dispatchEvent(simulatedEvent);
+            }
+        }, { passive: false });
+
+        canvas.addEventListener('touchend', (e) => {
+            e.preventDefault();
+             if (isDrawing || isDraggingImage || resizingHandle) { // Add resizingHandle to check
+                 const simulatedEvent = new MouseEvent('mouseup', {
+                     clientX: e.changedTouches[0].clientX,
+                     clientY: e.changedTouches[0].clientY,
+                     button: 0,
+                     bubbles: true,
+                     cancelable: true
+                 });
+                 canvas.dispatchEvent(simulatedEvent);
+             }
+        }, { passive: false });
+
+
+        canvas.addEventListener('click', (e) => {
+             if (!isDrawing && !isDraggingImage && !resizingHandle) { // Add resizingHandle to check
+                 handleCanvasClick(e);
+             }
+        });
+
+        canvas.addEventListener('dblclick', (e) => {
+            const pos = getMousePos(e);
+            const clickX = pos.x;
+            const clickY = pos.y;
+
+            if (activeManipulableImageObject) {
+                commitActiveImageToCanvas();
+            }
+
+            for (let i = placedImages.length - 1; i >= 0; i--) {
+                const imgObj = placedImages[i];
+                if (clickX >= imgObj.x && clickX <= imgObj.x + imgObj.w &&
+                    clickY >= imgObj.y && clickY <= imgObj.y + imgObj.h) {
+
+                    activeManipulableImageObject = imgObj;
+                    placedImages.splice(i, 1); // Remove it from placedImages temporarily
+
+                    currentTool = 'image';
+                    activeTool = 'image';
+                    updateToolButtonStyles();
+                    redrawCanvas();
+                    showMessage("Image selected. Drag to move, press 'R' to rotate, click outside or change tool to place.");
+                    return;
+                }
+            }
+        });
+
+
+        document.addEventListener('keydown', (e) => {
+             if (e.key === 'Shift' && !e.repeat && !sideMenu.classList.contains('open') && !textInputModal.classList.contains('visible') && !imageGenerationModal.classList.contains('visible') && !backgroundSelectionModal.classList.contains('visible')) {
+                 toolBeforeShift = currentTool;
+                 if (currentTool === 'draw' || currentTool === 'pixel') {
+                     activeTool = 'line';
+                 } else if (currentTool === 'erase' || currentTool === 'pixelErase') {
+                     activeTool = 'lineErase';
+                 }
+                 updateToolButtonStyles();
+             } else if (e.key === 'r' || e.key === 'R') {
+                if (activeManipulableImageObject) {
+                    activeManipulableImageObject.rot += Math.PI / 12;
+                    redrawCanvas();
+                    showMessage("Image rotated.");
+                }
+            }
+        });
+
+        document.addEventListener('keyup', (e) => {
+             if (e.key === 'Shift') {
+                 if (activeTool === 'line' || activeTool === 'lineErase') {
+                      activeTool = currentTool;
+                      updateToolButtonStyles();
+                 }
+             }
+        });
+
+        document.addEventListener('click', (event) => {
+             if (sideMenu.classList.contains('open') &&
+                 !sideMenu.contains(event.target) &&
+                 event.target !== openMenuBtn) {
+                 sideMenu.classList.remove('open');
+             }
+        });
+
+
+        // --- Canvas Resizing ---
+
+        function resizeCanvas() {
+            const containerWidth = canvasContainer.clientWidth;
+            const containerHeight = canvasContainer.clientHeight;
+            const aspectRatio = 16 / 9;
+
+            let newWidth = containerWidth;
+            let newHeight = containerWidth / aspectRatio;
+
+            if (newHeight > containerHeight) {
+                newHeight = containerHeight;
+                newWidth = containerHeight * aspectRatio;
+            }
+
+            // Update main canvas dimensions
+            canvas.width = newWidth;
+            canvas.height = newHeight;
+
+            // Update base drawing canvas dimensions
+            baseDrawingCanvas.width = newWidth;
+            baseDrawingCanvas.height = newHeight;
+
+            // Ensure the base drawing layer is initialized/cleared immediately after resizing
+            setBaseCanvasBackground();
+
+            console.log(`Canvas resized to: ${canvas.width}x${canvas.height} (16:9 aspect ratio)`);
+
+            // Redraw canvas content after resizing
+            redrawCanvas();
+
+            // Always save state after a resize to capture new dimensions/background.
+            saveState();
+        }
+
+        window.addEventListener('resize', () => {
+            resizeCanvas();
+        });
+
+
+        // --- Home/Config Screen Logic ---
+
+        newBtn.addEventListener('click', () => {
+            homeScreen.style.display = 'none';
+            configScreen.style.display = 'flex';
+        });
+
+        creditsBtn.addEventListener('click', () => {
+            homeScreen.style.display = 'none';
+            creditsScreen.style.display = 'flex';
+        });
+
+        aboutBtn.addEventListener('click', () => {
+            showMessage("About: This is a simple drawing application.");
+        });
+
+        startDrawingBtn.addEventListener('click', () => {
+            canvasBackground = document.querySelector('input[name="canvasBackground"]:checked').value;
+
+            configScreen.style.display = 'none';
+            mainContent.style.display = 'flex';
+            colorPalette.style.display = 'flex';
+            openMenuBtn.style.display = 'block';
+
+            history = [];
+            historyIndex = -1;
+            placedImages = [];
+            activeManipulableImageObject = null;
+
+            resizeCanvas(); // Set initial canvas size and save initial state
+            setBaseCanvasBackground(); // Ensure base drawing layer is correctly cleared/set
+
+            showMessage("Start drawing!");
+        });
+
+        // Event listener for the new "Back" button on the config screen
+        backToHomeFromConfigBtn.addEventListener('click', () => {
+            configScreen.style.display = 'none';
+            homeScreen.style.display = 'flex';
+        });
+
+        showHomeBtn.addEventListener('click', () => {
+             mainContent.style.display = 'none';
+             colorPalette.style.display = 'none';
+             openMenuBtn.style.display = 'none';
+             sideMenu.classList.remove('open');
+             homeScreen.style.display = 'flex';
+             creditsScreen.style.display = 'none';
+             history = [];
+             historyIndex = -1;
+             placedImages = [];
+             activeManipulableImageObject = null;
+             updateHistoryButtons();
+        });
+
+        backToHomeFromCreditsBtn.addEventListener('click', () => {
+            creditsScreen.style.display = 'none';
+            homeScreen.style.display = 'flex';
+        });
+
+        // JSON upload functionality
+        uploadJsonBtn.addEventListener('click', () => {
+            jsonUploadInput.click();
+        });
+
+        jsonUploadInput.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = async (e) => {
+                    try {
+                        const loadedData = JSON.parse(e.target.result);
+                        if (loadedData.baseDrawingDataURL && loadedData.placedImagesData) {
+                            // Clear current drawing and history
+                            history = [];
+                            historyIndex = -1;
+                            placedImages = [];
+                            activeManipulableImageObject = null;
+
+                            // Set canvas dimensions from loaded data if available, otherwise use current
+                            canvas.width = loadedData.canvasWidth || canvas.width;
+                            canvas.height = loadedData.canvasHeight || canvas.height;
+                            baseDrawingCanvas.width = canvas.width;
+                            baseDrawingCanvas.height = canvas.height;
+
+                            // Set background preference and image
+                            canvasBackground = loadedData.canvasBackground || 'white';
+                            if (loadedData.currentBackgroundImageUrl) {
+                                const img = new Image();
+                                img.onload = () => {
+                                    currentBackgroundImage = img;
+                                    currentBackgroundImageUrl = loadedData.currentBackgroundImageUrl;
+                                    loadStateFromObject(loadedData); // Load drawing data after background is ready
+                                    showMessage("Drawing loaded successfully!");
+                                    // Transition to main content after loading
+                                    configScreen.style.display = 'none'; // Hide config screen
+                                    mainContent.style.display = 'flex';
+                                    colorPalette.style.display = 'flex';
+                                    openMenuBtn.style.display = 'block';
+                                };
+                                img.onerror = () => {
+                                    console.error("Error loading background image from JSON:", loadedData.currentBackgroundImageUrl);
+                                    currentBackgroundImage = null;
+                                    currentBackgroundImageUrl = '';
+                                    loadStateFromObject(loadedData); // Load drawing data even if background fails
+                                    showMessage("Drawing loaded with background error.");
+                                    configScreen.style.display = 'none'; // Hide config screen
+                                    mainContent.style.display = 'flex';
+                                    colorPalette.style.display = 'flex';
+                                    openMenuBtn.style.display = 'block';
+                                };
+                                img.src = loadedData.currentBackgroundImageUrl;
+                            } else {
+                                currentBackgroundImage = null;
+                                currentBackgroundImageUrl = '';
+                                loadStateFromObject(loadedData);
+                                showMessage("Drawing loaded successfully!");
+                                configScreen.style.display = 'none'; // Hide config screen
+                                mainContent.style.display = 'flex';
+                                colorPalette.style.display = 'flex';
+                                openMenuBtn.style.display = 'block';
+                            }
+                        } else {
+                            showMessage("Invalid JSON file format for drawing.");
+                        }
+                    } catch (error) {
+                        console.error("Error parsing JSON file:", error);
+                        showMessage("Error loading drawing: Invalid JSON file.");
+                    }
+                };
+                reader.readAsText(file);
+            }
+        });
+
+
+        // --- Gemini Image Generation Functions ---
+
+        generateImageBtn.addEventListener('click', () => {
+            imageGenerationModal.classList.add('visible');
+            imagePromptInput.value = '';
+            generatedImagePreview.style.display = 'none';
+            placeGeneratedImageBtn.style.display = 'none';
+            imageGenerationLoadingStar.style.display = 'none';
+            generateImageButtonText.style.display = 'inline';
+            generateImageApiBtn.disabled = false;
+        });
+
+        closeImageGenerationModalBtn.addEventListener('click', () => {
+            imageGenerationModal.classList.remove('visible');
+            generatedImageData = null;
+            imageGenerationLoadingStar.classList.remove('spinning');
+            imageGenerationLoadingStar.style.display = 'none';
+            generateImageButtonText.style.display = 'inline';
+        });
+
+        generateImageApiBtn.addEventListener('click', async () => {
+            const prompt = imagePromptInput.value.trim();
+            if (!prompt) {
+                showMessage("Please enter a prompt to generate an image.");
+                return;
+            }
+
+            generatedImagePreview.style.display = 'none';
+            placeGeneratedImageBtn.style.display = 'none';
+            generateImageApiBtn.disabled = true;
+
+            imageGenerationLoadingStar.style.display = 'inline-block';
+            imageGenerationLoadingStar.classList.add('spinning');
+            generateImageButtonText.style.display = 'none';
+
+            try {
+                const payload = { instances: { prompt: prompt }, parameters: { "sampleCount": 1} };
+                const apiKey = "";
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${apiKey}`;
+
+                console.log("Sending API request with payload:", payload);
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                console.log("Received API response:", response);
+
+                if (!response.ok) {
+                    let errorDetails = "Unknown error";
+                    try {
+                        const errorData = await response.json();
+                        errorDetails = JSON.stringify(errorData, null, 2);
+                    } catch (jsonError) {
+                        errorDetails = `Could not parse error details: ${jsonError.message}. Raw response: ${await response.text()}`;
+                    }
+                    throw new Error(`API request failed with status ${response.status}: ${errorDetails}`);
+                }
+
+                const result = await response.json();
+                console.log("Parsed API result:", result);
+
+                if (result.predictions && result.predictions.length > 0 && result.predictions[0].bytesBase64Encoded) {
+                    generatedImageData = `data:image/png;base64,${result.predictions[0].bytesBase64Encoded}`;
+                    generatedImagePreview.src = generatedImageData;
+                    generatedImagePreview.style.display = 'block';
+                    placeGeneratedImageBtn.style.display = 'inline-block';
+                    showMessage("Image generated successfully!");
+                } else {
+                    showMessage("Image generation failed: No valid image received.");
+                    console.error("Gemini API response error: Unexpected result structure.", result);
+                }
+            } catch (error) {
+                console.error("Error generating image (full object):", error);
+                let errorMessage = "An unknown error occurred.";
+                if (error instanceof Error) {
+                    if (error.message.includes("status 401")) {
+                        errorMessage = `API request failed: Unauthorized (401). Please ensure your Gemini API key is correctly configured and has the necessary permissions.`;
+                    } else {
+                        errorMessage = `Error: ${error.message}`;
+                    }
+                    if (error.stack) {
+                        console.error("Error stack:", error.stack);
+                    }
+                } else if (typeof error === 'object' && error !== null) {
+                    try {
+                        errorMessage = `Error details: ${JSON.stringify(error, null, 2)}`;
+                    } catch (stringifyError) {
+                        errorMessage = `Unknown error: Could not serialize error object. Type: ${typeof error}`;
+                    }
+                } else {
+                    errorMessage = `Unknown error: ${String(error)}`;
+                }
+                showMessage(errorMessage);
+            } finally {
+                generateImageApiBtn.disabled = false;
+                imageGenerationLoadingStar.classList.remove('spinning');
+                imageGenerationLoadingStar.style.display = 'none';
+                generateImageButtonText.style.display = 'inline';
+            }
+        });
+
+        placeGeneratedImageBtn.addEventListener('click', () => {
+            if (generatedImageData) {
+                if (activeManipulableImageObject) {
+                    commitActiveImageToCanvas();
+                }
+
+                const img = new Image();
+                img.onload = () => {
+                    // Create offscreen canvas for this image layer
+                    const layerCanvas = document.createElement('canvas');
+                    layerCanvas.width = img.width;
+                    layerCanvas.height = img.height;
+                    const layerCtx = layerCanvas.getContext('2d');
+                    layerCtx.drawImage(img, 0, 0); // Draw image onto its layer canvas
+
+                    const maxCanvasDim = Math.min(canvas.width, canvas.height);
+                    const maxImageDim = Math.max(img.width, img.height);
+                    let scale = 1;
+                    if (maxImageDim > maxCanvasDim * 0.8) {
+                        scale = (maxCanvasDim * 0.8) / maxImageDim;
+                    }
+                    const imgW = img.width * scale;
+                    const imgH = img.height * scale;
+                    const imgX = (canvas.width - imgW) / 2;
+                    const imgY = (canvas.height - imgH) / 2;
+
+                    activeManipulableImageObject = {
+                        img: img,
+                        x: imgX,
+                        y: imgY,
+                        w: imgW,
+                        h: imgH,
+                        rot: 0,
+                        layerCanvas: layerCanvas, // Store the offscreen canvas
+                        layerCtx: layerCtx
+                    };
+
+                    switchTool('generateImage');
+                    updateToolButtonStyles();
+                    redrawCanvas();
+                    imageGenerationModal.classList.remove('visible');
+                    showMessage("Generated image placed. Click and drag to move, click outside to place.");
+                };
+                img.src = generatedImageData;
+            } else {
+                showMessage("No image to place.");
+            }
+        });
+
+        // --- Gemini Text Generation Functions ---
+        async function generateTextWithGemini() {
+            const prompt = textInput.value.trim();
+            if (!prompt) {
+                showMessage("Please enter a prompt to generate text.");
+                return;
+            }
+
+            generateTextApiBtn.disabled = true;
+            textGenerationLoadingStar.style.display = 'inline-block';
+            textGenerationLoadingStar.classList.add('spinning');
+            generateTextButtonText.style.display = 'none';
+
+            try {
+                let chatHistory = [];
+                chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+                const payload = { contents: chatHistory };
+                const apiKey = "";
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+                console.log("Sending API request for text generation with payload:", payload);
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                console.log("Received API response for text generation:", response);
+
+                if (!response.ok) {
+                    let errorDetails = "Unknown error";
+                    try {
+                        const errorData = await response.json();
+                        errorDetails = JSON.stringify(errorData, null, 2);
+                    } catch (jsonError) {
+                        errorDetails = `Could not parse error details: ${jsonError.message}. Raw response: ${await response.text()}`;
+                    }
+                    throw new Error(`API call failed with status ${response.status}: ${errorDetails}`);
+                }
+
+                const result = await response.json();
+                console.log("Parsed API result for text generation:", result);
+
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    const generatedText = result.candidates[0].content.parts[0].text;
+                    textInput.value = generatedText;
+                    showMessage("Text generated successfully!");
+                } else {
+                    showMessage("Text generation failed: No valid text received.");
+                    console.error("Gemini API response error: Unexpected result structure.", result);
+                }
+            } catch (error) {
+                console.error("Error generating text (full object):", error);
+                let errorMessage = "An unknown error occurred.";
+                if (error instanceof Error) {
+                    if (error.message.includes("status 401")) {
+                        errorMessage = `API request failed: Unauthorized (401). Please ensure your Gemini API key is correctly configured and has the necessary permissions.`;
+                    } else {
+                        errorMessage = `Error: ${error.message}`;
+                    }
+                    if (error.stack) {
+                        console.error("Error stack:", error.stack);
+                    }
+                } else if (typeof error === 'object' && error !== null) {
+                    try {
+                        errorMessage = `Error details: ${JSON.stringify(error, null, 2)}`;
+                    } catch (stringifyError) {
+                        errorMessage = `Unknown error: Could not serialize error object. Type: ${typeof error}`;
+                    }
+                } else {
+                    errorMessage = `Unknown error: ${String(error)}`;
+                }
+                showMessage(errorMessage);
+            } finally {
+                generateTextApiBtn.disabled = false;
+                textGenerationLoadingStar.classList.remove('spinning');
+                textGenerationLoadingStar.style.display = 'none';
+                generateTextButtonText.style.display = 'inline';
+            }
+        }
+
+        // --- Background Selection Functions ---
+
+        function renderStandardBackgrounds() {
+            standardBackgroundsContainer.innerHTML = '';
+            predefinedBackgrounds.forEach(bg => {
+                const optionDiv = document.createElement('div');
+                optionDiv.classList.add('background-option');
+                optionDiv.dataset.url = bg.url;
+
+                const img = new Image();
+                img.src = bg.url;
+                img.alt = bg.name;
+                img.onerror = () => {
+                    img.src = `https://placehold.co/100x70/cccccc/000000?text=Error`;
+                    img.alt = `Error loading ${bg.name}`;
+                };
+
+                optionDiv.appendChild(img);
+                const nameSpan = document.createElement('span');
+                nameSpan.textContent = bg.name;
+                optionDiv.appendChild(nameSpan);
+
+                const checkmark = document.createElement('span');
+                checkmark.classList.add('checkmark');
+                checkmark.innerHTML = '&#10003;';
+
+                optionDiv.appendChild(checkmark);
+
+                optionDiv.addEventListener('click', () => {
+                    selectedBackgroundUrl = bg.url;
+                    updateActiveBackgroundSelection();
+                });
+
+                standardBackgroundsContainer.appendChild(optionDiv);
+            });
+            updateActiveBackgroundSelection();
+        }
+
+        function confirmBackgroundSelection(imageUrl) {
+            if (imageUrl) {
+                const img = new Image();
+                img.onload = () => {
+                    currentBackgroundImage = img;
+                    currentBackgroundImageUrl = imageUrl;
+                    localStorage.setItem('currentBackgroundImageUrl', imageUrl);
+                    redrawCanvas(); // Update main canvas with new background
+                    saveState(); // Save state with new background
+                    showMessage("Background updated.");
+                };
+                img.onerror = () => {
+                    showMessage("Error loading background image.");
+                    console.error("Error loading background image:", imageUrl);
+                    currentBackgroundImage = null;
+                    currentBackgroundImageUrl = '';
+                    localStorage.removeItem('currentBackgroundImageUrl');
+                    redrawCanvas(); // Redraw without background
+                    saveState(); // Save state without background
+                };
+                img.src = imageUrl;
+            } else {
+                currentBackgroundImage = null;
+                currentBackgroundImageUrl = '';
+                localStorage.removeItem('currentBackgroundImageUrl');
+                redrawCanvas(); // Redraw without background
+                saveState(); // Save state without background
+                showMessage("Background cleared.");
+            }
+            backgroundSelectionModal.classList.remove('visible');
+            homeScreen.style.display = 'flex';
+        }
+
+        function updateActiveBackgroundSelection() {
+            standardBackgroundsContainer.querySelectorAll('.background-option').forEach(option => {
+                option.classList.remove('active');
+                if (option.dataset.url === selectedBackgroundUrl) {
+                    option.classList.add('active');
+                }
+            });
+        }
+
+
+        // --- Initial Setup ---
+
+        homeScreen.style.display = 'flex';
+        configScreen.style.display = 'none';
+        mainContent.style.display = 'none';
+        colorPalette.style.display = 'none';
+        openMenuBtn.style.display = 'none';
+        creditsScreen.style.display = 'none';
+        backgroundSelectionModal.style.display = 'none';
+
+
+        if (currentTheme === 'dark') {
+            body.classList.add('dark-mode');
+            darkModeToggle.textContent = `☀️ Light`;
+        } else {
+             body.classList.remove('dark-mode');
+             darkModeToggle.textContent = `🌙 Dark`;
+        }
+
+        renderSavedColors();
+        updateHistoryButtons();
+        updateToolButtonStyles();
+
+        generateTextApiBtn.addEventListener('click', generateTextWithGemini);
+
+        // backgroundBtn.addEventListener('click', () => { // Removed event listener as button is removed
+        //     homeScreen.style.display = 'none';
+        //     backgroundSelectionModal.classList.add('visible');
+        //     selectedBackgroundUrl = currentBackgroundImageUrl;
+        //     renderStandardBackgrounds();
+        // });
+
+        cancelBackgroundSelectionBtn.addEventListener('click', () => {
+            backgroundSelectionModal.classList.remove('visible');
+            homeScreen.style.display = 'flex';
+        });
+
+        uploadBackgroundBtn.addEventListener('click', () => {
+            backgroundUploadInput.click();
+        });
+
+        backgroundUploadInput.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    confirmBackgroundSelection(e.target.result);
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        clearBackgroundBtn.addEventListener('click', () => {
+            confirmBackgroundSelection(null);
+        });
+
+        saveBackgroundBtn.addEventListener('click', () => {
+            confirmBackgroundSelection(selectedBackgroundUrl);
+        });
+
+        // Call resizeCanvas initially to set all canvas dimensions.
+        // This must happen before any redrawCanvas calls or attempts to draw on canvases.
+        resizeCanvas();
+
+        // Load saved background on initial app load if available
+        if (currentBackgroundImageUrl) {
+            const img = new Image();
+            img.onload = () => {
+                currentBackgroundImage = img;
+                redrawCanvas(); // Now redrawCanvas is called after canvas dimensions are set
+            };
+            img.onerror = () => {
+                console.error("Error loading saved background image:", currentBackgroundImageUrl);
+                currentBackgroundImage = null;
+                currentBackgroundImageUrl = '';
+                localStorage.removeItem('currentBackgroundImageUrl');
+                redrawCanvas(); // Now redrawCanvas is called after canvas dimensions are set
+            };
+            img.src = currentBackgroundImageUrl;
+        }
+
+    </script>
+</body>
+</html>
